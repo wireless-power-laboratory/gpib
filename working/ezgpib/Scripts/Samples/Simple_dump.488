@@ -1,0 +1,60 @@
+Program Ident;
+
+const 
+    Scope_Address = 7;
+    TimeOut = 1;
+    CRLF = #13 + #10;
+    Filename='C:\EZGPIBData\output.txt';
+
+var
+    Preamble, Identity, Data : String;
+    num_length, i            : LongInt;
+    time, time_step          : Extended;
+    y_orig, y_inc, y, y_ref  : Extended;
+
+begin;
+    EZGPIB_ScreenClear;
+    
+    num_length := 500011;
+    time_step  := 0.00001;
+    y_ref := 128;
+    y_inc := 0.00625;
+    y_orig := 0.0;
+
+    EZGPIB_ScreenWriteLn('Deleting previous file...');
+    
+    if EZGPIB_FileExists(Filename) 
+       then EZGPIB_FileDelete(Filename); 
+    
+    EZGPIB_ScreenWriteLn('Filling buffer...');
+    
+    Data := StringOfChar(#129 , num_length);
+    
+    time := 0.0;
+    
+    EZGPIB_FileClearBuffer; //Clear The Filebuffer
+    
+    for i := 11 to (Length(Data)) do
+      begin
+      
+        y := ((1.0 * ord(Data[i])) - y_ref) * y_inc + y_orig ;
+
+        EZGPIB_FileAddToBuffer(time);
+        EZGPIB_FileAddToBuffer(y);
+        EZGPIB_FileAddToBuffer(#13+#10);
+        
+        time := time + time_step;
+        
+        if ((i mod 1000) = 0) then
+          begin
+            EZGPIB_ScreenWrite(i); 
+            EZGPIB_ScreenWrite(#13);
+          end; 
+      end;
+      
+    EZGPIB_ScreenWriteLn('Output to file...'); 
+    
+    EZGPIB_FileWrite(Filename); 
+    
+    EZGPIB_ScreenWrite(CRLF + 'Done.');
+end.

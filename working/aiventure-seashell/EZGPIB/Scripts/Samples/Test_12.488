@@ -1,0 +1,15 @@
+Program PLOT;  // shows how to receive a screen plot from a HP5371 and store it in a file
+
+const device = 6;
+
+var s:string;
+
+begin;
+  EZGPIB_buswritedata(device,'INT;PSO,DISP');
+  EZGPIB_buswritedata(device,'PLOT');
+  EZGPIB_buswaitfordatablock(device,s,10);
+  EZGPIB_fileclearbuffer;
+  EZGPIB_fileaddtobuffer(s);
+  EZGPIB_filewrite('C:\EZGPIB\Plot.Plt');
+  EZGPIB_screenwriteln(s);
+end.

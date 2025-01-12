@@ -1,0 +1,12 @@
+Program DateTimeExample;
+
+Var DateTime: TDateTime;
+    Year,Month,Day,Hour,Minute,Second,MilliSecond:Word;
+    YearS,MonthS,DayS,HourS,MinuteS,SecondS,MilliSecondS:String;
+
+begin;
+  DateTime:=EZGPIB_TimeNow;
+  DecodeDateTime(DateTime,Year,Month,Day,Hour,Minute,Second,MilliSecond);
+  HourS:=IntTostr(Hour);
+  EZGPIB_ScreenWriteLn(HourS);
+end.

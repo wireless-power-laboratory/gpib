@@ -1,0 +1,14 @@
+Program New;
+
+var i:SmallInt;
+
+begin;
+  i:=32767;
+  EZGPIB_ScreenWriteLn(i);
+  i:=i+1;
+  EZGPIB_ScreenWriteLn(i);
+  i:=-32768;
+  EZGPIB_ScreenWriteLn(i);
+  i:=i-1;
+  EZGPIB_ScreenWriteLn(i);  
+end.

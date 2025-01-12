@@ -1,0 +1,73 @@
+Program Hilzendegen;
+
+const dev      = 10;
+      len      = 30;
+
+var   str      : string;
+      time     : TDateTime;
+      Daten    : Array [1..len] of Double;
+      Value    : Double;
+      Average  : Double;
+      Minimum  : Double;
+      Maximum  : Double;
+
+procedure Init;
+begin;
+  EZGPIB_BusWriteData(Dev,'BEEP'+#13+#10);
+  EZGPIB_TimeSleep(0.3);
+  EZGPIB_BusWriteData(Dev,'TRIG AUTO'+#13+#10); 
+  EZGPIB_TimeSleep(0.3);
+  EZGPIB_BusWriteData(Dev,'END ALWAYS');
+  EZGPIB_TimeSleep(0.3);
+  EZGPIB_DDEServerCreateItem('AverageVoltage'); 
+  EZGPIB_ScreenClear; 
+end;
+
+procedure FetchData;
+begin;
+  EZGPIB_BusWaitForData(Dev,str,1.0);
+  Time:=EZGPIB_TimeNow;
+end;
+
+procedure DisplayData;
+begin;
+  EZGPIB_ScreenWrite(Time);
+  EZGPIB_ScreenWrite('  ');    
+  EZGPIB_ScreenWrite(Value); 
+  EZGPIB_ScreenWrite('  '); 
+  EZGPIB_ScreenWrite(Minimum);           
+  EZGPIB_ScreenWrite('  '); 
+  EZGPIB_ScreenWrite(Average);  
+  EZGPIB_ScreenWrite('  '); 
+  EZGPIB_ScreenWriteLn(Maximum);                    
+end;
+
+procedure HandleData;
+var i:integer;
+    sum:double;
+begin;
+  Str:=EZGPIB_ConvertStripToNumber(Str);
+  Value:=EZGPIB_ConvertToFloatNumber(Str);  
+  for i:=len downto 2 do Daten[i-1]:=Daten[i];
+  Daten[len]:=Value;
+  Sum:=0;
+  Minimum:=1E99;
+  Maximum:=-1E99;
+  for i:=1 to len do
+  begin;
+    Sum:=Sum+Daten[i];
+    if Daten[i]<Minimum then Minimum:=Daten[i];
+    if Daten[i]>Maximum then Maximum:=Daten[i];    
+  end;
+  Average:=Sum/Len;
+  EZGPIB_DDEServerAssignvalue('AverageVoltage',EZGPIB_ConvertToFixed(Average,5));
+end;
+       
+begin;
+  Init;
+  repeat
+    FetchData;
+    HandleData;
+    DisplayData;
+  until EZGPIB_KbdKeyPressed;
+end.

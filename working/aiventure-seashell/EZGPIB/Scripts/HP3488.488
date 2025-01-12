@@ -1,0 +1,17 @@
+Program HP3488;
+
+{$include addresses.inc}
+
+var
+  Buffer: String;
+  
+begin;
+  EZGPIB_screenclear;
+  ezgpib_BusIFC;                                           // Send a IFC to Prologix USB <-> GPIB converter
+  ezgpib_BusFindAllDevices;                                // Find all active GPIB device
+  EZGPIB_BusAutoOff;
+  
+  EZGPIB_BusWriteData(HP3488,'ID?');
+  EZGPIB_BusWaitForData(HP3488, Buffer, 2);
+  EZGPIB_ScreenWriteLn(Buffer);
+end.

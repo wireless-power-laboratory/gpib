@@ -1,0 +1,11 @@
+Program New;
+
+var answer:string;
+
+begin;
+  EZGPIB_TCPConnect('192.168.178.35',502);
+  EZGPIB_TCPTimeOut('192.168.178.35',0.5);
+  EZGPIB_TCPWrite('192.168.178.35',#2+'DA'+#3);
+  answer:=EZGPIB_TCPRead('192.168.178.35');
+  EZGPIB_ScreenWriteLn(Answer);
+end.

@@ -1,0 +1,27 @@
+Program HP3457AOnly;
+
+const HP3457=10;
+      filename='C:\EZGPIBData\O2Sensor.Txt';
+
+var answer:string;
+    dummy:double;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename); 
+  EZGPIB_buswritedata(HP3457,'LFREQ?');
+  EZGPIB_buswaitfordata(HP3457,answer,20.0); 
+  EZGPIB_ScreenWriteln(Answer);         
+  repeat
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);   
+    EZGPIB_FileClearBuffer;
+    dummy:=EZGPIB_TimeNow
+    EZGPIB_FileAddtoBuffer(dummy); 
+    EZGPIB_FileAddtoBuffer(answer);
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteln(answer);           
+  until EZGPIB_KbdKeypressed;
+end.

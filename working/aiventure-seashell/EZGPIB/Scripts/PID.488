@@ -1,0 +1,52 @@
+Program PID;
+
+const HP6034 = 12;
+      K196 = 1;
+      HP3457 = 10;
+      C1 = -5.802E-5;
+      C2 =  3.90802E-1;      
+      Setpoint = 50.0;
+      Ku=1.0;
+      Pu=92.1;
+      
+var answer:String; 
+    Temperature,LastTemperature,R:Double; 
+    P,I,D,Controller,Voltage:Double;
+    Err:Double; 
+    sendstring:String;   
+
+begin;
+  i:=0;
+  EZGPIB_ScreenClear;
+  EZGPIB_BusWriteData(HP3457,'TRIG SGL');  
+  repeat
+    EZGPIB_timeWaitformultipleof(1);
+    EZGPIB_BusWriteData(HP3457,'?');
+    EZGPIB_BusWaitForData(HP3457,answer,1.0);
+    Answer:=EZGPIB_ConvertStriptoNumber(Answer);
+    R:=EZGPIB_ConverttoFloatNumber(Answer);
+    Temperature:=C2/(-2*C1)-SQRT(C2*C2/(4*C1*C1)-(R-100)/-C1); 
+    Err:=Setpoint-Temperature;
+    P:=0.2*Ku*Err;
+    I:=I+P*(1.0/(1.2*Pu));
+    if I<0 then I:=0;
+    D:=-0.2*Ku*0.33*Pu*(Temperature-LastTemperature);
+    LastTemperature:=Temperature;
+    Controller:=P+I+D;
+    If Controller<0 then Controller:=0;
+    Voltage:=SQRT(Controller*10.0);
+    Sendstring:=EZGPIB_ConverttoFixed(Voltage,3);
+    SendString:='P'+Sendstring+'VG';
+    EZGPIB_BusWriteData(HP6034,Sendstring);
+    EZGPIB_ScreenWrite(Temperature);
+    EZGPIB_ScreenWrite(' ');   
+    EZGPIB_ScreenWrite(P);
+    EZGPIB_ScreenWrite(' ');
+    EZGPIB_ScreenWrite(I);
+    EZGPIB_ScreenWrite(' ');
+    EZGPIB_ScreenWrite(D);
+    EZGPIB_ScreenWrite(' ');                                         
+    EZGPIB_ScreenWriteLn(SendString);    
+    EZGPIB_Timesleep(0.1);
+  until EZGPIB_KbdKeypressed;
+end.

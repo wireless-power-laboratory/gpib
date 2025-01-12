@@ -1,0 +1,43 @@
+    Program LPC;
+    
+    Const Filename='C:\EZGPIBData\LPC.Txt';
+          Keithley=1;
+          
+    
+    Var   Time:String;
+          dummy1:string;
+          r1:Double;
+          
+
+    procedure HandleData;
+    begin;
+      EZGPIB_BusWaitForData(Keithley,Dummy1,0.5);
+      Dummy1:=EZGPIB_ConvertStriptonumber(Dummy1);
+      r1:=EZGPIB_ConvertToFloatNumber(Dummy1);
+      dummy1:=EZGPIB_ConvertToExponential(r1,7,2);  
+      Time:=EZGPIB_ConvertToMJD(EZGPIB_TimeNow);                    //Get the time in MJD format
+      Time:=EZGPIB_ConvertStripToNumber(Time);                      //Make sure it uses an decimal point
+      EZGPIB_FileClearBuffer;                                       //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer(Time);                                 //Add time to FileBuffer
+      EZGPIB_FileAddtoBuffer(r1);                                   //Add TIC value ot FileBuffer         
+      EZGPIB_FileWrite(Filename);                                   //Append Contents of FileBuffer to FileName
+      EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+      EZGPIB_ScreenWrite(' ');
+      EZGPIB_ScreenWriteLn(dummy1);                      
+      EZGPIB_ChangeLed;
+    end;
+    
+    begin;
+      EZGPIB_BusSettimeout(0.5);
+      EZGPIB_BusFindAllDevices;
+      EZGPIB_BusWriteData(Keithley,'S6X');
+      EZGPIB_ScreenClear;
+      EZGPIB_ScreenWrite('Start of program at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+      repeat
+        EZGPIB_TimeWaitforMultipleof(1);
+        HandleData;
+      until EZGPIB_KbdKeyPressed;
+      EZGPIB_ScreenWrite('Program terminated at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+    end.

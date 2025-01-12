@@ -1,0 +1,27 @@
+Program Counter_Test;
+
+const Counter_Address=2;
+      TimeOut=5.0;
+
+var   Answer:String;
+
+begin;
+  EZGPIB_BusFindAllDevices;
+  EZGPIB_BusWriteData(Counter_Address,'GA100');
+  EZGPIB_ScreenClear;  
+  repeat
+    EZGPIB_TimeWaitForMultipleOf(1);
+    EZGPIB_ScreenGotoXY(1,1);
+    EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);  
+    If EZGPIB_BusSrq then
+    begin;     
+      if EZGPIB_BusSourceOfSrq=Counter_Address then
+      begin;
+        EZGPIB_BusWaitForData(Counter_Address,Answer,TimeOut);
+        Answer:=EZGPIB_ConvertStripToNumber(Answer);
+        EZGPIB_ScreenGotoXY(25,1);
+        EZGPIB_ScreenWriteLn(Answer);
+      end;
+    end; 
+  until EZGPIB_KbdKeyPressed;
+end.

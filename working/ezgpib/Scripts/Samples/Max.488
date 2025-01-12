@@ -1,0 +1,22 @@
+Program MaxFcn;
+
+Var
+   Mkr1,Mkr2,MaxTone : Double;
+   M1,M2,Mmax        : Integer;
+
+Begin
+   M1 := 10;
+   M2 := 11;
+   Mmax := Round(Max(M1,M2));
+   EZGPIB_ScreenWriteln(Mmax);  
+
+   Mkr1 := -10.0;
+   Mkr2 := -11.0;
+   MaxTone := Max(Mkr1,Mkr2);
+   EZGPIB_ScreenWriteln(MaxTone);  
+    
+   Mkr1 := 10.0;
+   Mkr2 := 11.0;
+   MaxTone := Max(Mkr1,Mkr2);
+   EZGPIB_ScreenWriteln(MaxTone);   
+End.

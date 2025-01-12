@@ -1,0 +1,11 @@
+Program Secondary_Adresses;
+
+function Full(Primary,Secondary:Integer):Integer;
+begin;
+  result:= (secondary shl 8) + primary;
+end;
+
+begin;
+  EZGPIB_ScreenWrite('The full adresss of Primary 9 and Secondary 4 is: ');
+  EZGPIB_ScreenWriteLn(Full(9,4));
+end.

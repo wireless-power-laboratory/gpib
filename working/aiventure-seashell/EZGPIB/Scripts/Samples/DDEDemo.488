@@ -1,0 +1,34 @@
+Program DDEDemo;
+
+const delta_t = 0.05;
+      omega   = 1.0;
+
+var Sinus:Double;
+    CoSinus:Double;
+    Tangens:Double;
+    t:Double;
+       
+begin;
+  EZGPIB_ScreenClear;
+  t:=0; 
+  EZGPIB_DDEServerCreateItem('CosVoltage');   
+  EZGPIB_DDEServerCreateItem('SinVoltage');   
+  EZGPIB_DDEServerCreateItem('TanVoltage');     
+  repeat
+    EZGPIB_Timesleep(delta_t);
+    t:=t+delta_t;
+    Sinus:=sin(omega * t);
+    CoSinus:=cos(omega * t);
+    Tangens:=Sinus/Cosinus;
+    EZGPIB_DDEServerAssignvalue('CosVoltage',EZGPIB_ConvertStripToNumber(CoSinus)); 
+    EZGPIB_DDEServerAssignvalue('SinVoltage',EZGPIB_ConvertStripToNumber(Sinus));
+    EZGPIB_DDEServerAssignvalue('TanVoltage',EZGPIB_ConvertStripToNumber(Tangens));   
+    EZGPIB_ScreenWrite(t);
+    EZGPIB_ScreenWrite(' ');        
+    EZGPIB_ScreenWrite(Sinus);  
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWrite(CoSinus); 
+    EZGPIB_ScreenWrite(' ');
+    EZGPIB_ScreenWriteLn(Tangens);
+  until EZGPIB_KbdKeyPressed;
+end.

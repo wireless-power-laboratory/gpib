@@ -1,0 +1,17 @@
+Program Version;
+
+Var
+   Version  : String;
+   
+Begin
+   EZGPIB_ScreenClear;
+   //Version:=EZGPIB_BusGetVer;
+   //EZGPIB_ScreenWriteLn('Before BusGetVer:  ' + Version);
+   
+   EZGPIB_BusFindAllDevices;
+ 
+   Version:=EZGPIB_BusGetVer;
+   EZGPIB_ScreenWriteLn('After BusGetVer:  ' + Version);
+  
+End.
+

@@ -1,0 +1,22 @@
+Program New;
+
+var acc1,acc2:integer;
+    f1,f2:integer;
+    i:integer;
+
+begin;
+  acc1:=0;
+  acc2:=0;
+  f1:=$1;
+  f2:=$2;
+  for i:=1 to 30000 do  acc1:=(acc1+f1) and $1FFFF;
+  i:=0;
+  repeat
+    i:=i+1;
+    acc1:=(acc1+f1) and $1FFFF;
+    acc2:=(acc2+f2) and $1FFFF;    
+  until acc1=acc2;
+  EZGPIB_screenwrite(i);
+  EZGPIB_screenwrite('  ');  
+  EZGPIB_screenwriteln(acc2);  
+end.

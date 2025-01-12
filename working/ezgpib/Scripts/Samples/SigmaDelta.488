@@ -1,0 +1,64 @@
+Program SigmaDelta;
+
+var dacinput:Integer;
+    delta_adder:Integer;
+    sigma_adder:Integer;
+    sigma_latch:Integer;
+    INT_1:SmallInt;
+    INT_2:SmallInt;
+    feedback:SmallInt;
+    dac1,dac2:Boolean;
+    sum1,sum2,out2:double;
+    i,count:integer;
+
+procedure init;
+begin;
+  delta_adder:=0;
+  sigma_adder:=0;
+  sigma_latch:=0;
+  INT_1:=0;
+  INT_2:=0;
+  feedback:=0;
+end;
+
+procedure sd1;
+begin;
+  {
+  delta_adder:=dacinput+(sigma_latch and $C000);
+  sigma_adder:=delta_adder+sigma_latch;
+  sigma_latch:=sigma_adder;
+  dac1:=(sigma_latch and $8000)<>0;
+  }   
+  delta_adder:=dacinput+(sigma_latch and $3000000);
+  sigma_adder:=delta_adder+sigma_latch;
+  sigma_latch:=sigma_adder;
+  dac1:=(sigma_latch and $2000000)<>0;  
+end; 
+
+procedure sd2;
+begin;
+  if ((INT_1 + INT_2)>0) then feedback:=$4000 else feedback:=$C000;  
+  if ((INT_1 + INT_2)>0) then dac2:=TRUE else dac2:=FALSE; 
+  INT_2:= INT_1/2;
+  INT_1:= INT_1 + (dacinput-feedback)/2;
+end; 
+
+begin;
+  init;
+  EZGPIB_ScreenClear;
+  dacinput:=256*65536;
+  sum1:=0;
+  sum2:=0;
+  out2:=0;
+  count:=1000;
+  for i:=1 to count do
+  begin;
+    sd1;
+    if dac1 then sum1:=sum1+1;  
+    sd2;
+    if dac2 then sum2:=sum2+1 else sum2:=sum2-1;
+  end;
+  EZGPIB_ScreenWrite(sum1/count);
+  EZGPIB_ScreenWrite(' ');  
+  EZGPIB_ScreenWriteLn(sum2/count);    
+end.

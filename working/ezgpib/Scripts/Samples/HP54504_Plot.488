@@ -1,0 +1,24 @@
+Program Plot_Test_HP54504;
+
+const filename = 'C:\EZGPIBData\Test.Plt';
+      HP54504 = 14;
+      timeout = 10.0;
+
+var str:string;
+
+procedure writefiledata;
+begin;
+  if EZGPIB_FileExists(Filename) then EZGPIB_FileDelete(Filename);
+  EZGPIB_FileAddToBuffer(str);                               
+  EZGPIB_FileWrite(Filename);
+end;
+
+begin;
+  EZGPIB_BusWriteData(HP54504,'*IDN?');
+  EZGPIB_BusWaitForData(HP54504,str,timeout);
+  EZGPIB_ScreenWriteLn(str);  
+  EZGPIB_BusWriteData(HP54504,':PLOT?');
+  EZGPIB_BusWaitForDataBlock(HP54504,str,timeout);
+  EZGPIB_ScreenWriteLn(str);
+  WriteFileData;
+end.

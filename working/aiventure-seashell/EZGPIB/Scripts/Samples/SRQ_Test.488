@@ -1,0 +1,22 @@
+Program SRQ;
+
+var device:integer;
+    dummy:string;
+
+begin;
+  EZGPIB_ScreenClear;
+  EZGPIB_BusWriteData(2,'GA 1');    //Just to adress my counter which in tern generates SRQs
+  EZGPIB_BusFindAllDevices;         //Important for the search of the SRQ source
+  repeat
+    if EZGPIB_BusSRQ then
+    begin;
+      device:=EZGPIB_BusSourceOfSrq;
+      EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+      EZGPIB_ScreenWrite(' Device '); 
+      EZGPIB_ScreenWrite(device);
+      EZGPIB_ScreenWriteLn(' triggered the SRQ line');
+      EZGPIB_BusWaitForData(device,dummy,0.1);                   
+    end;
+    EZGPIB_TimeSleep(0.1);
+  until EZGPIB_KBDKeypressed; 
+end.

@@ -1,0 +1,24 @@
+Program HP3457AOnly;
+
+const HP3457=10;
+      filename='C:\EZGPIBData\Sensorplatine.Txt';
+
+var answer:string;
+    dummy:double;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename);         
+  repeat
+    EZGPIB_buswaitfordata(HP3457,answer,2.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);   
+    EZGPIB_FileClearBuffer;
+    dummy:=EZGPIB_TimeNow
+    EZGPIB_FileAddtoBuffer(dummy); 
+    EZGPIB_FileAddtoBuffer(answer);
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteln(answer);           
+  until EZGPIB_KbdKeypressed;
+end.

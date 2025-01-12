@@ -1,0 +1,92 @@
+Program Cal_MCP5350;
+
+const HP3457=10;
+      HP6632=9;
+      filename='C:\EZGPIBData\MCP5350.Txt';
+      Port = 7;
+      Channel = 4;
+      ModbusAddress=100;
+
+
+var answer:string;
+    MCPVoltage,value:Double;
+    RegisterNumber:Integer;
+    Count:Integer;
+    Mittelwert:Double;
+    Abtastcount:Integer;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_ComOpen(Port,9600,8,'N',1);
+  Registernumber:=2*Channel+8; 
+  EZGPIB_BuswriteData(HP6632,'OUTPUT ON'+#13);
+  EZGPIB_BuswriteData(HP6632,'VOLT 2.3'+#13); 
+  EZGPIB_ScreenWriteln('Set 6632 to 2.3 V');
+  for count:=1 to 60 do
+  begin;
+    EZGPIB_TimeWaitforMultipleOf(1);
+    EZGPIB_ScreenWrite('.');
+    EZGPIB_buswaitfordata(HP3457,answer,2.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);
+    value:=EZGPIB_ConvertToFloatNumber(answer);
+    MCPVoltage:=EZGPIB_ModbusReadInputReal(Port,Modbusaddress,RegisterNumber,1.0);         
+  end; 
+  abtastcount:=0; 
+  for count:=1 to 10 do
+  begin;
+    EZGPIB_TimeWaitforMultipleOf(1);
+    EZGPIB_ScreenWrite('.');
+    EZGPIB_buswaitfordata(HP3457,answer,2.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);
+    value:=EZGPIB_ConvertToFloatNumber(answer);  
+    mittelwert:=(abtastcount*mittelwert+value)/(abtastcount+1.0);
+    abtastcount:=abtastcount+1;
+    MCPVoltage:=EZGPIB_ModbusReadInputReal(Port,Modbusaddress,RegisterNumber,1.0);         
+  end;  
+  answer:=EZGPIB_ConvertStripToNumber(mittelwert);
+  EZGPIB_Comwrite(Port,chr(Modbusaddress)+'Cal '+inttostr(channel)+' 2 '+answer); 
+  EZGPIB_ScreenWriteln('');
+  
+  EZGPIB_BuswriteData(HP6632,'VOLT 0.01'+#13); 
+  EZGPIB_ScreenWriteln('Set 6632 to 0.01 V');
+  for count:=1 to 60 do
+  begin;
+    EZGPIB_TimeWaitforMultipleOf(1);
+    EZGPIB_ScreenWrite('.');
+    EZGPIB_buswaitfordata(HP3457,answer,2.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);
+    MCPVoltage:=EZGPIB_ModbusReadInputReal(Port,Modbusaddress,RegisterNumber,1.0);         
+  end;  
+  abtastcount:=0; 
+  for count:=1 to 10 do
+  begin;
+    EZGPIB_TimeWaitforMultipleOf(1);
+    EZGPIB_ScreenWrite('.');
+    EZGPIB_buswaitfordata(HP3457,answer,2.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);
+    value:=EZGPIB_ConvertToFloatNumber(answer);  
+    mittelwert:=(abtastcount*mittelwert+value)/(abtastcount+1.0);
+    abtastcount:=abtastcount+1;
+    MCPVoltage:=EZGPIB_ModbusReadInputReal(Port,Modbusaddress,RegisterNumber,1.0);         
+  end;      
+  answer:=EZGPIB_ConvertStripToNumber(mittelwert);  
+  EZGPIB_Comwrite(Port,chr(Modbusaddress)+'Cal '+inttostr(channel)+' 1 '+Answer);   
+  EZGPIB_FileDelete(Filename); 
+  EZGPIB_ScreenWriteln('');
+  repeat
+    EZGPIB_TimeWaitforMultipleOf(1);
+    EZGPIB_buswaitfordata(HP3457,answer,2.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);   
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(EZGPIB_TimeNow); 
+    EZGPIB_FileAddtoBuffer(answer);
+    MCPVoltage:=EZGPIB_ModbusReadInputReal(Port,Modbusaddress,RegisterNumber,1.0); 
+    EZGPIB_FileAddtoBuffer(MCPVoltage);       
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWrite(answer); 
+    EZGPIB_ScreenWrite(' ');  
+    EZGPIB_ScreenWriteln(MCPVoltage);                  
+  until EZGPIB_KbdKeypressed;
+end.

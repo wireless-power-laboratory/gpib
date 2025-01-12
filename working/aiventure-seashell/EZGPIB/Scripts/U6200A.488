@@ -1,0 +1,50 @@
+Program U6200A;    
+                                      
+const U6200A=21;
+      filename='C:\EZGPIBData\DCF77.Txt';
+
+var Answer:String;
+    
+procedure Init;
+begin;    
+  EZGPIB_BusEnableEoi; 
+  EZGPIB_BusSetEOSChar(10);
+  EZGPIB_BusSetEos(0);                                 
+  ezgpib_screenClear;                                      // Clear output console screen
+  ezgpib_screenwriteln('Checking for devices');            // Tell user what we are doing...                       
+  ezgpib_BusIFC;                                           // Send a IFC to Prologix USB <-> GPIB converter
+  //ezgpib_BusFindAllDevices;                                // Find all active GPIB device
+end;
+
+procedure writefileheader;
+begin;
+  ezgpib_filedelete(filename);                            // If the file exists, delete it
+  ezgpib_fileclearbuffer;                                 // Clear the file's Dataline
+  ezgpib_fileaddtobuffer('Date&Time/MJD');                // Add the first header
+  ezgpib_fileaddtobuffer('Delta_T/s');                   // Add the third header  
+  ezgpib_filewrite(filename);                             // Write Dataline to file
+end;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  //ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'   
+  ezgpib_fileaddtobuffer(Answer);                               
+  ezgpib_filewrite(filename);
+end;
+
+
+begin                                        
+  Init; 
+  writefileheader;                                              
+  repeat  
+    EZGPIB_BusWriteData(U6200A,'FETCH:FREQ?'); 
+    //EZGPIB_TimeWaitForMultipleOf(2)  
+    //EZGPIB_BusWriteData(U6200A,'CALC3:DATA?');            
+    EZGPIB_BusWaitForData(U6200A,Answer,5.0);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow); 
+    EZGPIB_ScreenWrite(' ');   
+    EZGPIB_ScreenWriteLn(Answer);
+    writefiledata;  
+  until ezgpib_kbdKeyPressed;
+end.

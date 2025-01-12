@@ -1,0 +1,42 @@
+Program HP3457;
+
+const HP3457 = 10;
+      SR620  = 11;
+      C1 = -5.802E-5;
+      C2 =  3.90802E-1;
+      filename = 'C:\EZGPIBData\Cesium_Rubidium.Txt';
+
+var answer:string;
+    R:Double;
+    T:Double;
+    TI:Double;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date' 
+  ezgpib_fileaddtobuffer(TI);     
+  ezgpib_fileaddtobuffer(T);                               
+  ezgpib_filewrite(filename);
+end;
+
+begin;
+  EZGPIB_BusWriteData(HP3457,'TRIG SGL');
+  repeat
+  EZGPIB_BusWriteData(SR620,'MEAS? 0');       
+    EZGPIB_BusWaitForData(SR620,Answer,5.0);
+    Answer:=EZGPIB_ConvertStriptoNumber(Answer);
+    TI:=EZGPIB_ConverttoFloatNumber(Answer);
+    EZGPIB_BusWriteData(HP3457,'?');
+    EZGPIB_BusWaitForData(HP3457,answer,1.0);
+    Answer:=EZGPIB_ConvertStriptoNumber(Answer);
+    R:=EZGPIB_ConverttoFloatNumber(Answer);
+    T:=C2/(-2*C1)-SQRT(C2*C2/(4*C1*C1)-(R-100)/-C1);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+    EZGPIB_ScreenWrite(' ');    
+    EZGPIB_ScreenWrite(TI); 
+    EZGPIB_ScreenWrite(' ');          
+    EZGPIB_ScreenWriteln(T); 
+    writefiledata;   
+  until true=false;
+end.

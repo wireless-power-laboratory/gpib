@@ -1,0 +1,10 @@
+Program New;
+
+var testarr:array[1..2] of array[1..400] of single;
+
+begin;
+  testarr[1][1]:=1.0;
+  testarr[2][1]:=2.0;
+  EZGPIB_screenWriteLn(testarr[1][1]);
+  EZGPIB_screenWriteLn(testarr[2][1]);  
+end.

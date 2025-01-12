@@ -1,0 +1,83 @@
+    Program O2HTH;
+    
+    Const Filename='C:\EZGPIBDATA\O2HTK.Txt';
+          Keithley196 = 1; 
+          HP3457 = 10;
+          Port=10;
+    
+    Var   O2Answer:String;
+          KAnswer:String;
+          HAnswer:String;
+          dummy:string;                                    
+          Count:integer;
+          totcount:integer;
+          
+    function Init:Boolean;
+    begin;
+      if EZGPIB_FileExists(Filename)                               
+      then EZGPIB_FileDelete(Filename);                            
+      O2Answer:='';                                             
+      totcount:=0;
+      Result:=EZGPIB_ComOpen(Port,115200,8,'N',1);
+      EZGPIB_BusWriteData(HP3457,'TRIG SGL');              
+    end;
+    
+    function DataAvailable:Boolean;
+    begin;
+      Result:=False;
+      O2Answer:=O2Answer+EZGPIB_ComRead(Port);            
+      If Pos(#3,O2Answer)<>0 then                         
+      begin; 
+        dummy:=copy(O2answer,1,Pos(#3,O2Answer));
+        delete(o2answer,1,Pos(#3,O2Answer));
+        if length(dummy)>=1 then delete(dummy,length(dummy),1);
+        if length(dummy)>=1 then delete(dummy,1,1);
+        if pos('ME=',dummy)<>0 then
+        begin;
+          delete(dummy,1,3);
+          Result:=True;
+        end;
+      end;
+    end;
+    
+    begin;
+      EZGPIB_ScreenClear;
+      EZGPIB_ScreenWrite('Start of program at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+      if init then
+      begin;
+        repeat
+          EZGPIB_ComWrite(Port,#2+'ME'+#3);
+          count:=0;
+          repeat;
+            EZGPIB_TimeSleep(1.0);
+            count:=count+1;
+            EZGPIB_ComWrite(Port,#2+'ON'+#3);  
+          until DataAvailable or (count>15);
+          if count<=15 then
+          begin;
+            totcount:=totcount+1;
+            {
+            EZGPIB_BusWaitForData(Keithley196,kanswer,1.0);
+            kAnswer:=EZGPIB_ConvertStriptoNumber(kAnswer);
+            EZGPIB_BusWriteData(HP3457,'?');
+            EZGPIB_BusWaitForData(HP3457,hanswer,1.0);
+            hAnswer:=EZGPIB_ConvertStriptoNumber(hAnswer); 
+            }           
+            EZGPIB_FileClearbuffer;
+            EZGPIB_FileAddToBuffer(totcount);
+            //EZGPIB_FileAddToBuffer(kAnswer);  
+            //EZGPIB_FileAddToBuffer(hAnswer);  
+            dummy:=EZGPIB_ConvertStriptoNumber(dummy);                    
+            EZGPIB_FileAddToBuffer(dummy);
+            EZGPIB_FileWrite(FileName);
+            EZGPIB_ScreenWriteLn(dummy);
+            EZGPIB_TimeSleep(3.0);           
+          end
+          Else EZGPIB_ScreenWriteLn('No Answer');
+        until EZGPIB_KbdKeyPressed;
+      end
+      else EZGPIB_ScreenWriteLn('Error opening the com port...');
+      EZGPIB_ScreenWrite('Program terminated at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+    end.

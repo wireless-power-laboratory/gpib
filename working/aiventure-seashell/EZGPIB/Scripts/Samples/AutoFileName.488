@@ -1,0 +1,11 @@
+Program AutoFilename;
+
+const BaseFileName = 'MyFile_';
+
+var   Filename : String;
+
+begin;
+  FileName := BaseFileName;
+  EZGPIB_ConvertAddToString(Filename,EZGPIB_TimeNow);
+  EZGPIB_ScreenWriteLn(Filename);
+end.

@@ -1,0 +1,58 @@
+Program DSP_Problem;
+
+const 
+  samples_per_sec = 96000;
+  signal_frequency = 100.13;
+  filename = 'C:\EZGPIBDATA\DSPData.Txt';
+
+var 
+  time:double;
+  q:double;
+  i:double;
+  inst_phase:Double;
+  accphase:Double;
+  oldphase:Double;
+  count:integer;
+  second:integer;
+  
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(Accphase);                               
+  ezgpib_filewrite(filename);
+end;  
+  
+function compute_phase(x,y:Double):Double;
+begin;
+  result:=arctan2(y,x);
+  //if result<0.0 then result:=result+2.0*Pi;
+end; 
+
+function mods(x,a:Double):Double;
+begin;
+  result:=x-a*round(x/a);
+end;
+   
+begin;
+  EZGPIB_ScreenClear;
+  second:=0;
+  oldphase:=0.0;
+  accphase:=0.0;
+  repeat
+    for count:=0 to samples_per_sec-1 do
+    begin;
+      time:=1.0*second+count/samples_per_sec;
+      q:=cos(2.0*Pi*signal_frequency*time);
+      i:=sin(2.0*Pi*signal_frequency*time);
+      inst_phase:=compute_phase(q,i);
+    end;
+    inc(second);
+    accphase:=accphase+mods(inst_phase-oldphase,Pi)*100.0E-9;
+    oldphase:=inst_phase;
+    EZGPIB_ScreenWrite(time);
+    EZGPIB_ScreenWrite(' ');
+    EZGPIB_ScreenWriteLn(AccPhase);
+    WriteFileData;
+    EZGPIB_TimeSleep(0.01);
+  until EZGPIB_KBDKeypressed;
+end.

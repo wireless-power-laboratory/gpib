@@ -1,0 +1,24 @@
+Program HP3457AOnly;
+
+const HP3457=10;
+      filename='C:\EZGPIBData\DYNAMENT.Txt';
+
+var answer:string;
+    dummy:double;
+
+begin;
+  EZGPIB_BusFindAllDevices;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename);         
+  repeat
+    EZGPIB_TimeWaitForMultipleOf(1);
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);   
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(answer);
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteln(answer);           
+  until EZGPIB_KbdKeypressed;
+end.

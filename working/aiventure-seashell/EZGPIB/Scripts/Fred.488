@@ -1,0 +1,8 @@
+Program New;
+
+var str:string; 
+
+begin;
+  EZGPIB_BusFindAllDevices;
+  EZGPIB_BusWaitForData(1,str,1.0);
+end.

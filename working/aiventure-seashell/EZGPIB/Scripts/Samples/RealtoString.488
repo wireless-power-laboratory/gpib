@@ -1,0 +1,12 @@
+Program Real_to_String;
+
+var d:double;
+    s,command:string;
+
+begin;
+  d:=3.141596;
+  s:=EZGPIB_ConvertToFixed(d,1);
+  //s:=EZGPIB_ConvertToDecimalComma(s);
+  command:='VSET '+s;
+  EZGPIB_ScreenWriteLn(command);
+end.

@@ -1,0 +1,19 @@
+Program New;
+
+const filename='C:\EZGPIBData\Random.Txt';
+
+var i:integer;
+    n:integer;
+
+begin;
+  EZGPIB_FileDelete(Filename);
+  for i:=1 to 160 do
+  begin;
+    EZGPIB_FileClearBuffer;
+    n:=Round(EZGPIB_Random(3));
+    n:=n-1;
+    EZGPIB_ScreenWriteLn(n);
+    EZGPIB_FileAddtoBuffer(n);
+    EZGPIB_FileWrite(Filename);
+  end;
+end.

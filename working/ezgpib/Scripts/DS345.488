@@ -1,0 +1,8 @@
+Program DS345;
+
+const 
+  DS345 = 18;
+
+begin;
+  EZGPIB_BuswriteData(DS345,'FREQ 1005944.4444444');
+end.

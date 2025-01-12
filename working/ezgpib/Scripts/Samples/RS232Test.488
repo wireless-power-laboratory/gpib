@@ -1,0 +1,14 @@
+Program RS232Test;
+
+begin;
+  EZGPIB_ComOpen(1,110,8,'n',1);
+  repeat
+    EZGPIB_ComWrite(1,'Test');
+    EZGPIB_ComSetDTR(1,true);
+    EZGPIB_ComSetRTS(1,true);
+    EZGPIB_Timesleep(0.2);
+    EZGPIB_ComSetDTR(1,false);
+    EZGPIB_ComSetRTS(1,false);
+    EZGPIB_Timesleep(0.2);    
+  until EZGPIB_kbdkeypressed;
+end.

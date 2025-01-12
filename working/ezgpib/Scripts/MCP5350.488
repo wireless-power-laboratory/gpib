@@ -1,0 +1,32 @@
+Program Compare_HP3457_vs_MCP5350;
+
+const HP3457=10;
+      filename='C:\EZGPIBData\MCP5350.Txt';
+      Port = 7;
+      ModbusAddress=100;
+      RegisterNumber=22;
+
+var answer:string;
+    MCPVoltage:Double;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename);
+  EZGPIB_ComOpen(Port,9600,8,'N',1); 
+  repeat
+    EZGPIB_TimeWaitforMultipleOf(1);
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);   
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(EZGPIB_TimeNow); 
+    EZGPIB_FileAddtoBuffer(answer);
+    MCPVoltage:=EZGPIB_ModbusReadInputReal(Port,Modbusaddress,RegisterNumber,1.0); 
+    EZGPIB_FileAddtoBuffer(MCPVoltage);       
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWrite(answer); 
+    EZGPIB_ScreenWrite(' ');  
+    EZGPIB_ScreenWriteln(MCPVoltage);                  
+  until EZGPIB_KbdKeypressed;
+end.

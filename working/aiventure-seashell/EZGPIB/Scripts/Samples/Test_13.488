@@ -1,0 +1,10 @@
+Program Test13;     //Demonstrates the use of direct io via ports
+
+var po:Byte;
+
+begin;
+  EZGPIB_PortOut($378,0);
+  EZGPIB_PortOut($378,$FF); 
+  po:=EZGPIB_PortIn($378); 
+  EZGPIB_ScreenWriteln(po);
+end.

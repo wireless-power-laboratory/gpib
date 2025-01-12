@@ -1,0 +1,18 @@
+Program Test11; //Shows the use of serial port communication
+
+var OK:Boolean;
+    Answer:String;
+
+begin;  
+  EZGPIB_ScreenClear;                                                                                     // Open Com 1: 300 Baud, 8N1
+  OK:=EZGPIB_ComOpen(2,300,8,'N',1);                                                                      // DTR and RTS are set default
+  if not OK then EZGPIB_ScreenWriteln('Could not open the Com port')
+  else
+  begin;
+    EZGPIB_ComWrite(1,'The quick brown fox jumps over the lazy dogs back 1234567890 times');                 // Writes the string full speed
+    EZGPIB_ComWriteWithDelay(1,'The quick brown fox jumps over the lazy dogs back 1234567890 times',100);    // Writes the string with 100 ms delay between chars
+    EZGPIB_TimeSleep(0.2);                                                                                   // Give a device some time to answer 
+    Answer:=EZGPIB_ComRead(1);                                                                               // Get the answer                                                                                   // Close port                                                                                   
+    EZGPIB_ScreenWriteln(Answer);   
+  end;
+end.

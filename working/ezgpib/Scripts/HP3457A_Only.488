@@ -1,0 +1,29 @@
+Program HP3457AOnly;
+
+const HP3457=10;
+      filename='C:\EZGPIBData\City1.Txt';
+
+var answer:string;
+    dummy:double;
+    number:double;
+
+begin;
+  EZGPIB_BusIfc;
+  //EZGPIB_BusFindAllDevices;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename);         
+  repeat
+    EZGPIB_TimeWaitForMultipleOf(1);
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);
+    number:=(EZGPIB_ConvertToFloatNumber(answer)-4.0E-3)/16.0E-3*25.0;   
+    EZGPIB_FileClearBuffer;
+    dummy:=EZGPIB_TimeNow
+    EZGPIB_FileAddtoBuffer(dummy); 
+    EZGPIB_FileAddtoBuffer(number);
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteln(number);           
+  until EZGPIB_KbdKeypressed;
+end.

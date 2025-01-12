@@ -1,0 +1,21 @@
+Program FileInput;
+     var 
+     foo:boolean;
+     filecontents:string;
+     bar:boolean;
+     
+begin;
+   EZGPIB_ScreenClear;
+   foo := EZGPIB_fileReadOpen('check.txt');
+   if (foo) then 
+   begin;
+     EZGPIB_screenWriteLn('File Exists.');
+     filecontents := EZGPIB_FileReadGetBuffer;
+     bar:=EZGPIB_fileReadEOF;
+     if (bar) then EZGPIB_screenWriteLn('At end!');
+     EZGPIB_ScreenWriteLn('Here is the contents:');
+     EZGPIB_ScreenWriteLn(filecontents);
+   end
+   else      
+   EZGPIB_screenWriteLn('File does not exist.');    
+end.

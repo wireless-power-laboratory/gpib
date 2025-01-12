@@ -1,0 +1,18 @@
+Program ModbusII;
+
+const Port = 7;
+      ModbusAddress = 101;
+      Coil = 0;
+      Timeout = 0.5;
+      
+var   CoilValue:Boolean;
+
+begin;
+  EZGPIB_ComOpen(Port,9600,8,'N',1);
+  EZGPIB_ModbusSetCoil(Port,Modbusaddress,Coil,true,1.0); 
+  CoilValue:=EZGPIB_ModbusReadCoil(Port,Modbusaddress,Coil,1.0);
+  EZGPIB_ScreenWriteln(CoilValue); 
+  EZGPIB_ModbusSetCoil(Port,Modbusaddress,Coil,false,1.0); 
+  CoilValue:=EZGPIB_ModbusReadCoil(Port,Modbusaddress,Coil,1.0);
+  EZGPIB_ScreenWriteln(CoilValue);   
+end.

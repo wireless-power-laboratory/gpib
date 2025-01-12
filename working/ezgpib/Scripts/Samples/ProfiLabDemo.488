@@ -1,0 +1,30 @@
+Program ProfiLab;
+
+var current:double;
+
+procedure IncrementCurrent;
+begin;
+  Current:=Current+1.0;
+  If Current>100.0 then Current:=0;
+  EZGPIB_ScreenGotoXY(1,1);
+  EZGPIB_Screenwrite('Setting Current for Profilab meter to ');
+  EZGPIB_Screenwrite(Current);
+  EZGPIB_Screenwrite(' mA');
+  EZGPIB_ProfiLabout(0,Current);
+end;
+
+procedure ShowSliderValue;
+begin;
+  EZGPIB_ScreenGotoxy(1,2);
+  EZGPIB_Screenwrite('The current value of the ProfiLab slider is ');  
+  EZGPIB_Screenwrite(EZGPIB_ProfilabIn(0));
+end;
+
+begin;
+  Current:=0;
+  Repeat
+    If EZGPIB_TimeNewSecond then IncrementCurrent;
+    ShowSliderValue;    
+    EZGPIB_TimeSleep(0.05);
+  until EZGPIB_KbdKeyPressed;
+end.

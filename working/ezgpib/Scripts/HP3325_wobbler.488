@@ -1,0 +1,24 @@
+Program New;
+
+const HP3325=17;
+      BaseF=100;
+      
+var Befehl1:String;
+    Frequenz:Integer;
+    I:integer;     
+
+begin;
+  i:=0;
+  repeat
+    i:=i+1;
+    if i>=100 then i:=0;
+    Frequenz:=BaseF+i;
+    //EZGPIB_Buswritedata(12,'P10.5000V G');
+    Befehl1:='FR'+inttostr(Frequenz)+'HZ'+#10;
+    EZGPIB_BusWriteData(HP3325,Befehl1);
+    EZGPIB_TimeSleep(1.0);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+    EZGPIB_ScreenWrite(' ');
+    EZGPIB_ScreenWriteln(Befehl1);        
+  until EZGPIB_KbdKeypressed;
+end.

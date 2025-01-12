@@ -1,0 +1,15 @@
+Program Test_10;                                            // Shows the use include files
+
+{$Include Declarations.Inc}
+
+begin                                                      // Notice how easy the body of the program is to be read
+  Init;                                                    // with some procedures and functions defined.
+  repeat
+    if ezgpib_BusWaitForSrq(20) then                       // Wait until a device requests service (or maximal 20 s)
+    begin;                                                 // If a device requests service
+      GetData;                                             // Perform GPIB communication
+      DoScreenOutput;                                      // Output data to screen
+    end;
+  until ezgpib_kbdKeyPressed;
+  ch:=ezgpib_kbdReadKey;
+end.

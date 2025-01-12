@@ -1,0 +1,48 @@
+Program TestTime;
+
+Const 
+  interval = 1;           // progress each X seconds
+  accuracy = 0.1;         // testvalue for accuracy or time interval
+  
+Var
+   currenttime:TDateTime;
+   oldtime:TDateTime;
+   deltat:Double;
+   deltatinseconds:Double;
+   firstloop:Boolean;
+
+Procedure printTime;
+Begin
+   EZGPIB_ScreenWrite('EZGPIB_TimeNow:');
+   EZGPIB_ScreenWrite(currenttime);
+   EZGPIB_ScreenWrite(' OldTime:');
+   EZGPIB_ScreenWrite(oldtime);  
+   EZGPIB_ScreenWrite(' DeltaT:');
+   EZGPIB_ScreenWrite(deltat);  
+   EZGPIB_ScreenWrite(' DeltaT in Seconds:');
+   EZGPIB_ScreenWriteLn(deltatinseconds);               
+End;
+
+Begin
+   EZGPIB_ScreenClear;
+   EZGPIB_timeWaitformultipleof(0); 
+   EZGPIB_ScreenWrite('Start at ');
+   EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);   
+   FirstLoop:=True;
+   repeat
+     EZGPIB_timeWaitformultipleof(interval);
+     currenttime:=EZGPIB_TimeNow; 
+     deltat:=currenttime-oldtime;
+     deltatinseconds:=deltat*86400.0;
+     if FirstLoop=False then    // If Firstloop=True then oldtime has not been set yet
+     begin;
+       if (deltatinseconds>(interval+accuracy)) 
+       or (deltatinseconds<(interval-accuracy)) 
+       then printtime;
+     end;
+     oldtime:=currenttime;
+     FirstLoop:=False;
+   until EZGPIB_KbdKeypressed;
+   EZGPIB_ScreenWrite('Done  at ');
+   EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);                   
+End.

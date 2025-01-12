@@ -1,0 +1,50 @@
+Program Loran;
+
+const FS700 = 17;
+      Filename='C:\EZGPIBDATA\Loran.Txt';
+
+var AnswerPhase,AnswerFrequency,Time:String;
+    Phase, Frequency: Double;
+
+procedure Init;
+begin;  
+  EZGPIB_ScreenClear;  
+  if EZGPIB_FileExists(Filename)                                                //Comment this out if you
+  then EZGPIB_FileDelete(Filename);                                             //always want to append
+  EZGPIB_FileClearBuffer;   
+  EZGPIB_FileAddtoBuffer('Time/MJD');                           
+  EZGPIB_FileAddtoBuffer('DeltaT/s');
+  EZGPIB_FileAddToBuffer('DeltaF/Hz');                                          //Add two strings to FileBuffer  
+  EZGPIB_FileWrite(Filename);                                                   //Append Contents of FileBuffer to FileName
+end; 
+
+procedure HandleData;
+begin;
+  EZGPIB_FileClearBuffer;                                                       //Clear The Filebuffer
+  EZGPIB_FileAddToBuffer(Time);                                                 //Add time to FileBuffer
+  EZGPIB_FileAddtoBuffer(Phase);                                                //Add TIC value ot FileBuffer
+  EZGPIB_FileAddtoBuffer(Frequency);                                            //Add TIC value ot FileBuffer  
+  EZGPIB_FileWrite(Filename);                                                   //Append Contents of FileBuffer to FileName
+end;   
+
+begin;
+  Init;
+  repeat
+    EZGPIB_TimeWaitForMultipleOf(1);
+    EZGPIB_BuswriteData(FS700,'DLTP?');
+    EZGPIB_BusWaitForData(FS700,AnswerPhase,2.00);
+    EZGPIB_BuswriteData(FS700,'DLTF? 1');
+    EZGPIB_BusWaitForData(FS700,AnswerFrequency,2.00);
+    Phase:=EZGPIB_ConvertToFloatNumber(AnswerPhase);
+    Phase:=Phase/360.0*100E-9;
+    Frequency:=EZGPIB_ConvertToFloatNumber(AnswerFrequency); 
+    Time:=EZGPIB_ConvertToMJD(EZGPIB_TimeNow);                                    //Get the time in MJD format
+    Time:=EZGPIB_ConvertStripToNumber(Time);                                      //Make sure it uses an decimal point    
+    EZGPIB_ScreenWrite(Time);     
+    EZGPIB_ScreenWrite('  ');     
+    EZGPIB_ScreenWrite(Phase);
+    EZGPIB_ScreenWrite('  ');
+    EZGPIB_ScreenWriteLn(Frequency);  
+    HandleData;  
+  until EZGPIB_KbdKeypressed;
+end.

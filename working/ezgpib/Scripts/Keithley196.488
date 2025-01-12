@@ -1,0 +1,25 @@
+Program Keithley196;
+
+const Keithley196 = 1;
+      filename = 'C:\Test\TempData.Txt';
+
+var answer:string;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(answer);                               
+  ezgpib_filewrite(filename);
+end;
+
+begin;
+  repeat
+    EZGPIB_timeWaitformultipleof(1);
+    EZGPIB_BusWaitForData(Keithley196,answer,1.0);
+    Answer:=EZGPIB_ConvertStriptoNumber(Answer);
+    EZGPIB_ScreenWriteln(Answer); 
+    writefiledata;   
+  until true=false;
+  EZGPIB_TimeSleep(1.0);
+end.

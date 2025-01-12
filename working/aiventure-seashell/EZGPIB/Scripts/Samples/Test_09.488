@@ -1,0 +1,91 @@
+Program Test_9;                                            // Shows the use of WaitSrq, SourceOfSrq
+                                                           // and WaitForData
+const Keithley  = 1;                                       // Declare some constants i.e. the device
+      Racal1996 = 2;                                       // addresses on the GPIB
+      HP5370    = 3;
+      filename='C:\EZGPIBData\TestFile.Txt';
+
+var ch:char;                                               // Declare a variable of character type
+    s:string;                                              // Declare some variables of string type
+    Temperature:string;
+    RacalCount:string;
+    TemperatureS:string;                                   // Declare some strings to hold the 
+    RacalCountS:string;                                    // stripped down version of the instrument strings  
+    srqdevice:integer;                                     // Declare a variable of integer type
+    srqtime:tdatetime;                                     // Declare a variable of date/time type
+    
+procedure Init;
+begin;                                    
+  ezgpib_screenClear;                                      // Clear output console screen
+  ezgpib_screenwriteln('Checking for devices');            // Tell user what we are doing...                       
+  ezgpib_BusIFC;                                           // Send a IFC to Prologix USB <-> GPIB converter
+  ezgpib_BusFindAllDevices;                                // Find all active GPIB devices
+  ezgpib_screenwriteln('Initializing devices');            // Tell user waht we are doing...
+  ezgpib_BusWriteData(Keithley,'F6X');                     // Set multimeter to temperature measurement in degree Celsius  
+  ezgpib_BusWriteData(Racal1996,'GA 100');                 // Set RACAL DANA gate time to 10 s
+end;
+
+procedure DoScreenOutput;
+begin;
+  s:='At ';
+  ezgpib_ConvertAddToString(s,srqtime);
+  ezgpib_ConvertAddToString(s,' device # ');
+  ezgpib_ConvertAddToString(s,srqdevice);  
+  ezgpib_ConvertAddToString(s,' requested service with status byte '); 
+  ezgpib_ConvertAddToString(s,ezgpib_bussrqstatus);     
+  ezgpib_screenwriteln(s);
+  s:='Raw data: ';
+  ezgpib_ConvertAddToString(s,Temperature);
+  ezgpib_ConvertAddToString(s,' '); 
+  ezgpib_ConvertAddToString(s,RacalCount);
+  ezgpib_screenwriteln(s);   
+  s:='Stripped: ';
+  ezgpib_ConvertAddToString(s,TemperatureS);
+  ezgpib_ConvertAddToString(s,' '); 
+  ezgpib_ConvertAddToString(s,RacalCountS);
+  ezgpib_screenwriteln(s); 
+  ezgpib_screenwriteln('');            
+end;
+
+procedure writefileheader;
+begin;
+  ezgpib_filedelete(filename);                             // If the file exists, delete it
+  ezgpib_fileclearbuffer;                                  // Clear the file's Dataline
+  ezgpib_fileaddtobuffer('Date&Time / MJD');               // Add the first header
+  ezgpib_fileaddtobuffer('Temperature / Deg C');           // Add the second header
+  ezgpib_fileaddtobuffer('Frequency / Hz');                // Add the third header  
+  ezgpib_filewrite(filename);                              // Write Dataline to file
+end;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date' 
+  ezgpib_fileaddtobuffer(TemperatureS);  
+  ezgpib_fileaddtobuffer(RacalCountS);                               
+  ezgpib_filewrite(filename);
+end;
+
+procedure GetData;
+begin;
+  srqtime:=ezgpib_timeNow;                                 // Store current time in date/time variable
+  srqdevice:=ezgpib_BusSourceOfSrq;                        // Find out which device requests service
+  ezgpib_BusWaitForData(Keithley,Temperature,2);           // Read temperature frm KEITHLEY multimeter, wait max 2 s
+  ezgpib_BusWaitForData(Racal1996,RacalCount,2);           // Read RACAL DANA counter value
+  TemperatureS:=ezgpib_ConvertStripToNumber(Temperature);  // Strip down the instrument strings to pure numbers
+  RacalCountS:=ezgpib_ConvertStripToNumber(RacalCount);  
+end;
+
+begin  
+  //WriteFileHeader;                                         // Notice how easy the body of the program is to be read
+  Init;                                                    // with some procedures and functions defined.
+  repeat
+    if ezgpib_BusWaitForSrq(20) then                       // Wait until a device requests service (or maximal 20 s)
+    begin;                                                 // If a device requests service
+      GetData;                                             // Perform GPIB communication
+      DoScreenOutput;
+      WriteFileData                                      // Output data to screen
+    end;
+  until ezgpib_kbdKeyPressed;
+  ch:=ezgpib_kbdReadKey;
+end.

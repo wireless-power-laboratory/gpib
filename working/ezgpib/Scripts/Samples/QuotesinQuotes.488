@@ -1,0 +1,8 @@
+Program Quotes_in_Quotes;
+
+var command:string;
+
+begin;
+  command:='C1:INSP? ''Data_array_1''';
+  EZGPIB_ScreenWriteLn(command);
+end.

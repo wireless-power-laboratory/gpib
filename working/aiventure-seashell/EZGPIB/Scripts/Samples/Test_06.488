@@ -1,0 +1,55 @@
+Program Test_6;                                            // The same as Test_5, but much more structured
+
+var s:string;                                              // Declare a variable of string type
+    ch:char;                                               // Declare a character type variable
+
+procedure init;
+begin;
+  ezgpib_screenclear;                                      // Clear output console screen
+  ezgpib_screengotoxy(1,1);                                // Setup the titles
+  ezgpib_screenwrite('Date / Time');
+  ezgpib_screengotoxy(30,1);
+  ezgpib_screenwrite('GPIB raw data');
+  ezgpib_screengotoxy(60,1);
+  ezgpib_screenwrite('GPIB data stripped');
+  ezgpib_screengotoxy(1,2);
+  ezgpib_screenwrite('-----------------------------------------------------------------------------');
+  ezgpib_busifc;                                           // Send a IFC to Prologix USB <-> GPIB converter
+  ezgpib_busaddressdevice(1);                              // Address device 1 as a talker
+  ezgpib_busautoon;                                        // Make the talker tlak automatically
+end;
+
+procedure handleclock;
+begin;
+  ezgpib_timewaitformultipleof(1);                         // Wait for the the next second
+  ezgpib_screengotoxy(1,3);
+  ezgpib_screenwrite(ezgpib_timenow);
+end;
+
+procedure dooutput;
+begin;
+  s:=ezgpib_busgetdata;                                    // If available then get it...
+  ezgpib_screengotoxy(30,3);
+  ezgpib_screenwrite(s);                                   // ...and put it on the screen
+  s:=ezgpib_convertstriptonumber(s);                       // Strip away any non-numerical character
+  ezgpib_screengotoxy(60,3);
+  ezgpib_screenwrite(s);
+end;
+
+procedure endmessage;
+begin;
+  ch:=ezgpib_kbdreadkey;                                   // Get the key!
+  ezgpib_screenwriteln('Ready');                           // Its been that long... better we tell it!
+  ezgpib_screenwrite('You used the "');                    // Make some additional comments in the end
+  ezgpib_screenwrite(ch);
+  ezgpib_screenwrite('" key to terminate the program...');
+end;
+
+begin                                                      // Notice how easy the body of the program is to be read
+  init;                                                    // with some procedures and functions defined.
+  repeat
+    handleclock;
+    if ezgpib_busdataavailable then dooutput;
+  until ezgpib_kbdkeypressed;
+  endmessage;
+end.

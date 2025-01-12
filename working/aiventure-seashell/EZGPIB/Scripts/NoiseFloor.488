@@ -1,0 +1,52 @@
+Program SR620;                                             // Shows the use of WaitSrq, SourceOfSrq
+                                                           // and WaitForData
+const SR620=11;
+      filename='C:\EZGPIBData\NoiseFloor.Txt';
+
+var SR620Count:string;                                     // Declare a variable of date/time type
+    Status:Integer;
+    
+procedure Init;
+begin;                                    
+  ezgpib_screenClear;                                      // Clear output console screen
+  ezgpib_screenwriteln('Checking for devices');            // Tell user what we are doing...                       
+  ezgpib_BusIFC;                                           // Send a IFC to Prologix USB <-> GPIB converter
+  //ezgpib_BusFindAllDevices;                                // Find all active GPIB device
+end;
+
+procedure writefileheader;
+begin;
+  //ezgpib_filedelete(filename);                            // If the file exists, delete it
+  ezgpib_fileclearbuffer;                                 // Clear the file's Dataline
+  ezgpib_fileaddtobuffer('Date&Time/MJD');                // Add the first header
+  ezgpib_fileaddtobuffer('Frequency/Hz');                 // Add the third header  
+  ezgpib_filewrite(filename);                             // Write Dataline to file
+end;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(SR620Count);                               
+  ezgpib_filewrite(filename);
+end;
+
+begin  
+  //WriteFileHeader;                                       
+  Init;  
+  //EZGPIB_BusWriteData(SR620,'AUTM 0')                                               
+  repeat
+    EZGPIB_BusWriteData(SR620,'MEAS? 0');
+    //repeat
+    //  EZGPIB_TimeSleep(0.1);
+    //  status:=EZGPIB_BusSPoll(SR620);          
+    //until EZGPIB_KbdKeyPressed or ((status and 1)<>0);   
+    //EZGPIB_TimeSleep(11.0); 
+    //status:=EZGPIB_BusSPoll(SR620);        
+    EZGPIB_BusWaitForData(SR620,SR620Count,2.0);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+    EZGPIB_ScreenWrite(' ');    
+    EZGPIB_ScreenWriteLn(SR620count);
+    WriteFileData;
+  until ezgpib_kbdKeyPressed;
+end.

@@ -1,0 +1,46 @@
+Program Charge;                                           
+
+const HP3457=10;
+      filename='C:\EZGPIBData\Charge.Txt';
+
+var Invalue:string;                                   
+    
+procedure Init;
+begin;                                    
+  ezgpib_screenClear;                                      // Clear output console screen
+  ezgpib_screenwriteln('Checking for devices');            // Tell user what we are doing...                       
+  ezgpib_BusIFC;                                           // Send a IFC to Prologix USB <-> GPIB converter
+end;
+
+procedure WriteFileHeader;
+begin;
+  ezgpib_filedelete(filename);                             // If the file exists, delete it
+  ezgpib_fileclearbuffer;                                  // Clear the file's Dataline
+  ezgpib_fileaddtobuffer('Date&Time/MJD');                 // Add the first header
+  ezgpib_fileaddtobuffer('Voltage/Volt');                  // Add the third header  
+  ezgpib_filewrite(filename);                              // Write Dataline to file
+end;
+
+procedure WriteFileData;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(InValue);                               
+  ezgpib_filewrite(filename);
+end;
+
+begin  
+  WriteFileHeader;                                       
+  Init;  
+  EZGPIB_BusWriteData(HP3457,'END ALWAYS');                                                 
+  repeat
+    EZGPIB_TimeWaitForMultipleOf(1);
+    EZGPIB_TimeWaitForMultipleOf(10);
+    EZGPIB_BusWaitForData(HP3457,InValue,10.0);
+    InValue:=EZGPIB_ConvertStripToNumber(Invalue);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+    EZGPIB_ScreenWrite('  ');
+    EZGPIB_ScreenWriteLn(Invalue);
+    WriteFileData;
+  until ezgpib_kbdKeyPressed;
+end.

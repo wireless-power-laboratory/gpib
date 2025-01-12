@@ -1,0 +1,35 @@
+Program HP3457;
+
+const HP3457=10;
+      Keithley196=1;
+      filename='C:\EZGPIBData\DacData.Txt';
+
+var answer:string;
+    normal:double;
+    hires:double;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename);
+  EZGPIB_buswritedata(HP3457,'LFREQ?');
+  EZGPIB_buswaitfordata(HP3457,answer,20.0); 
+  EZGPIB_ScreenWriteln(Answer);     
+  repeat
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    normal:=EZGPIB_ConvertToFloatNumber(Answer);
+    EZGPIB_buswritedata(HP3457,'RMATH HIRES');
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    hires:=EZGPIB_ConvertToFloatNumber(Answer); 
+    normal:=normal+hires;                
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(DateTimetoModifiedJulianDate(EZGPIB_TimeNow)); 
+    EZGPIB_FileAddtoBuffer(normal);
+    EZGPIB_buswaitfordata(Keithley196,answer,3.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer); 
+    EZGPIB_FileAddtoBuffer(Answer);           
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(normal);     
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteln(answer);           
+  until EZGPIB_KbdKeypressed;
+end.

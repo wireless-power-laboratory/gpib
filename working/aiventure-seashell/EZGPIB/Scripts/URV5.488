@@ -1,0 +1,9 @@
+Program URV5;
+
+var str:string;
+
+begin; 
+  EZGPIB_BusWriteData(15,'W8,PA,X2'+#13+#10);      
+  EZGPIB_BusWaitForData(15,str,30.0);
+  EZGPIB_ScreenWriteLn(str);  
+end.

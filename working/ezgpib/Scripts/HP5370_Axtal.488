@@ -1,0 +1,34 @@
+Program AXTAL;
+
+const HP5370=6;
+      Filename='C:\EZGPIBDATA\Axtalmessung.Txt';
+  
+var Start:TDateTime;
+    Jetzt:Double;
+    Data:String;  
+
+begin;
+  //EZGPIB_BusSetEOSChar(13);
+  EZGPIB_ScreenClear;
+  Start:=EZGPIB_TimeNow
+  Repeat
+    if EZGPIB_BusWaitForData(HP5370,Data,1.0) then
+    begin
+      Jetzt:=(EZGPIB_TimeNow-Start)*86400.0;
+      Data:=EZGPIB_ConvertStripToNumber(Data);
+      EZGPIB_Screenwrite(Jetzt);
+      EZGPIB_Screenwrite(' ');
+      EZGPIB_ScreenWriteLn(Data);
+      EZGPIB_FileClearBuffer;                                     //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer(Jetzt);                              //Add time to FileBuffer
+      EZGPIB_FileAddtoBuffer(Data);                               //Add TIC value ot FileBuffer
+      EZGPIB_FileWrite(Filename);   
+    end
+    else
+    begin;
+      EZGPIB_Screenwrite(EZGPIB_TimeNow);
+      EZGPIB_ScreenWriteLn(' Keine Daten vom Zähler gelesen');
+      EZGPIB_TimeSleep(1.0);
+    end; 
+  until EZGPIB_KBDKeyPressed;
+end.

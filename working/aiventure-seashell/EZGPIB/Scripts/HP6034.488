@@ -1,0 +1,49 @@
+Program HP6034;
+
+const HP6034 = 12;
+      K196 = 1;
+      Switch = 50.0;
+      
+var answer:String; 
+    Temperature:Double; 
+    Min:Double;
+    Max:Double;
+    Delta:Double;
+    DeltaT:Double;
+    Last:Double;
+    Flag:Boolean;         
+      
+begin;
+  repeat
+    EZGPIB_BusWaitForData(K196,Answer,3.0);
+    Answer:=EZGPIB_ConvertStripToNumber(Answer);
+    Temperature:=EZGPIB_ConvertToFloatNumber(Answer);    
+    if Temperature<Switch then
+    begin;
+      If Flag=False then
+      begin;
+        Delta:=0.8*Delta+0.2*(Max-Min);
+        DeltaT:=0.8*DeltaT+0.2*(EZGPIB_TimeNow-Last)*86400.0
+        If DeltaT>500 then DeltaT:=500;
+        Min:=Switch;
+        Max:=Switch;
+        Last:=EZGPIB_TimeNow;
+      end;
+      flag:=True;
+      EZGPIB_Buswritedata(HP6034,'P05.000VG');
+      if (Temperature<Min) and (Temperature>switch-3) then Min:=Temperature;
+    end
+    else
+    begin;
+      Flag:=False;
+      EZGPIB_Buswritedata(HP6034,'P00.000VG');
+      if (Temperature>Max) and (Temperature<switch+3) then Max:=Temperature;          
+    end;
+    EZGPIB_ScreenWrite(Temperature);
+    EZGPIB_ScreenWrite(' ');
+    EZGPIB_ScreenWrite(Delta);  
+    EZGPIB_ScreenWrite(' ');
+    EZGPIB_ScreenWriteLn(DeltaT);       
+    EZGPIB_Timesleep(0.1);
+  until EZGPIB_KbdKeypressed;
+end.

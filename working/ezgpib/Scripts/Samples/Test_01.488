@@ -1,0 +1,5 @@
+Program Test_1;                        // The famous 'Hello World' program ....
+begin
+  ezgpib_screenclear;                  // Clear output console screen
+  ezgpib_screenwrite('Hello World');   // Make the output
+end.

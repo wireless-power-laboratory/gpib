@@ -1,0 +1,13 @@
+Program Modbus;
+
+const Port = 7;
+      ModbusAddress = 101;
+      RegisterNumber = 7;
+      Timeout = 0.5;
+      
+var   RegisterValue:Double;
+
+begin;
+  EZGPIB_ComOpen(Port,9600,8,'N',1);
+  EZGPIB_ModbusSetCoil(Port,Modbusaddress,0,true,Timeout);  
+end.

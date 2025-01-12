@@ -1,0 +1,36 @@
+Program SigmaDelta1;
+
+var dacinput:Integer;
+    delta_adder:Integer;
+    sigma_latch:Integer;
+    dac:Boolean;
+    sum:double;
+    i,count:integer;
+
+procedure init;
+begin;
+  delta_adder:=0;
+  sigma_latch:=0;
+  sum:=0;
+end;
+
+procedure sd1;
+begin;
+  delta_adder:=dacinput+(sigma_latch and $1800);
+  sigma_latch:=sigma_latch+delta_adder;
+  dac:=(sigma_latch and $0800)<>0;   
+end; 
+
+begin;
+  init;
+  EZGPIB_ScreenClear;
+  count:=2048;
+  dacinput:=2000;
+  for i:=1 to count do
+  begin;
+    sd1;
+    EZGPIB_Screenwriteln(dac);
+    if dac then sum:=sum+1;  
+  end;
+  EZGPIB_ScreenWriteLn(sum/count);
+end.

@@ -1,0 +1,10 @@
+Program New;
+
+var answer:string;
+
+begin;
+  EZGPIB_TelNetConnect('192.168.178.35',502);
+  EZGPIB_TelNetWrite('192.168.178.35',#2+'DA'+#3);
+  answer:=EZGPIB_TelNetRead('192.168.178.35');
+  EZGPIB_ScreenWriteLn(Answer);
+end.

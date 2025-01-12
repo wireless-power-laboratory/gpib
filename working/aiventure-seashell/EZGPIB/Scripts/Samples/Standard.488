@@ -1,0 +1,20 @@
+Program ModeLoop;
+
+Type
+  tMode = (USB,LSB,CW,FM,AM,Data,PSK,Tune);  //define possible transmit modes
+  
+Var
+   ModeStep    :  Integer;
+   tempInt     :  Integer;
+   
+Begin
+
+   For ModeStep := ord(USB) to ord(Tune) Do   // <--- TYPE MISMATCH ERROR
+   Begin
+   End;
+   
+   ModeStep := CW;       // Following code works OK
+   
+   //tempInt := Ord(ModeStep);
+   EZGPIB_ScreenWriteln(tempInt);
+End.

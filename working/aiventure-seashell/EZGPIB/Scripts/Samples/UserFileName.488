@@ -1,0 +1,7 @@
+Program UserFileName;
+
+begin;
+  // Set the UserFilename from <File> <Parameters> first
+  // and then execute the script
+  EZGPIB_ScreenWriteln(UserFilename);
+end.

@@ -1,0 +1,65 @@
+Program DDE_Client;
+
+const DDEServerName = 'ddenetzteil';
+      DDETopicName  = 'DDE';
+      DDEItemName   = 'MAIN_DDES1_S0';
+      
+      MyDDEName     = 'DDETest';
+      
+      filename      = 'C:\EZGPIBData\TempController.Txt';
+      
+      HP6632        = 9;
+      Keithley195   = 1;
+      
+      MaxPower      = 24.0 * 1.1;
+
+var   DDEValue      : String;
+      VoltageS      : String;
+      CurrentS      : String;
+      PowerS        : String;
+      TemperatureS  : String;
+      OutS          : String;
+      Power         : Double;
+
+procedure WriteFileData;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(PowerS);    
+  ezgpib_fileaddtobuffer(TemperatureS);                                
+  ezgpib_filewrite(filename);
+end;
+
+begin;
+  EZGPIB_BusFindAllDevices;
+  EZGPIB_DDEServerCreateItem('Power');
+  EZGPIB_ScreenClear;
+  EZGPIB_BusWriteData(HP6632,'OUTPUT:STATE ON');
+  EZGPIB_DDEClientCreateItem(MyDDEName,DDEServerName,DDETopicName);
+  repeat
+    EZGPIB_TimeWaitForMultipleOf(1);
+    if EZGPIB_DDEClientGetValue(MyDDEName,DDEItemName,DDEValue) then 
+    begin;
+      EZGPIB_BusWriteData(HP6632,'SOURCE:VOLTAGE:LEVEL '+DDEValue);
+      EZGPIB_BusWriteData(HP6632,'MEASURE:SCALAR:VOLTAGE:DC?');
+      EZGPIB_BusWaitforData(HP6632,VoltageS,1.0);   
+      EZGPIB_BusWriteData(HP6632,'MEASURE:SCALAR:CURRENT:DC?');
+      EZGPIB_BusWaitforData(HP6632,CurrentS,1.0); 
+      EZGPIB_BusWaitforData(KEITHLEY195,TemperatureS,1.0); 
+      TemperatureS:=EZGPIB_ConvertStripToNumber(TemperatureS);           
+      Power:=100.0* EZGPIB_ConvertToFloatNumber(VoltageS) * EZGPIB_ConvertToFloatNumber(CurrentS) / MaxPower;
+      PowerS:=EZGPIB_ConvertToFixed(Power,2); 
+      TemperatureS:=EZGPIB_ConvertToFixed(EZGPIB_ConvertToFloatNumber(TemperatureS),2);              
+      OutS:=PowerS; 
+      EZGPIB_ConvertAddToString(OutS,'  '); 
+      EZGPIB_ConvertAddToString(OutS,TemperatureS);
+      EZGPIB_ScreenWriteLn(OutS);                                                 
+      WriteFileData;
+      EZGPIB_DDEServerAssignvalue('Power',PowerS);
+    end
+    else 
+    begin;
+      EZGPIB_ScreenWriteLn('No DDE communication available');
+      EZGPIB_DDEClientCreateItem(MyDDEName,DDEServerName,DDETopicName);      
+    end;
+  until EZGPIB_KbdKeyPressed;
+end.

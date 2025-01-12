@@ -1,0 +1,12 @@
+Program Test_2;              // Shows a simple loop....
+
+var i,j:integer;             // Declare 2 variables of integer type
+
+begin
+  ezgpib_screenclear;        // Clear output console screen
+  for i:=1 to 10 do          // Loop 10 times
+  begin;                     // Perform complicated math inside the loop
+    j:= 2 * i;
+    ezgpib_screenwriteln(j); // Output the result
+  end;
+end.

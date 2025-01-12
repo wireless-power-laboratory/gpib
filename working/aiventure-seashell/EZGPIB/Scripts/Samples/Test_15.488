@@ -1,0 +1,51 @@
+Program DDE_Client;
+
+const filename      = 'C:\EZGPIBData\TempController.Txt';
+      
+      HP6034        = 12;
+      Keithley195   = 1;
+
+var   CurrentS      : String;
+      PowerS        : String;
+      TemperatureS  : String;
+      OutS          : String;
+      Count         : Integer;
+      Power         : Double;
+
+procedure WriteFileData;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(PowerS);    
+  ezgpib_fileaddtobuffer(TemperatureS);                                
+  ezgpib_filewrite(filename);
+end;
+
+
+begin;
+  EZGPIB_BusFindAllDevices;
+  EZGPIB_ScreenClear;
+  EZGPIB_BusWriteData(HP6034,'C10.000AG');  
+  EZGPIB_BusWriteData(HP6034,'P24.000VG');
+  Count:=0;  
+  repeat
+    EZGPIB_ChangeLed;
+    EZGPIB_TimeWaitForMultipleOf(1);
+    Count:=Count+1;
+    //if Count=60 then EZGPIB_BusWriteData(HP6034,'P24.000VG');
+    EZGPIB_BusWriteData(HP6034,'T');  
+    EZGPIB_BusWaitForData(HP6034,Currents,1.0);
+    EZGPIB_BusWaitforData(KEITHLEY195,TemperatureS,1.0); 
+    CurrentS:=EZGPIB_ConvertStripToNumber(CurrentS);      
+    TemperatureS:=EZGPIB_ConvertStripToNumber(TemperatureS);           
+    Power:=24.0*EZGPIB_ConvertToFloatNumber(CurrentS);
+    PowerS:=EZGPIB_ConvertToFixed(Power,2); 
+    TemperatureS:=EZGPIB_ConvertToFixed(EZGPIB_ConvertToFloatNumber(TemperatureS),2);              
+    OutS:=PowerS; 
+    EZGPIB_ConvertAddToString(OutS,'  '); 
+    EZGPIB_ConvertAddToString(OutS,TemperatureS);
+    EZGPIB_ScreenWrite(OutS); 
+    EZGPIB_ScreenWrite('  '); 
+    EZGPIB_ScreenWriteLn(Count);                                                   
+    WriteFileData;
+  until EZGPIB_KbdKeyPressed;
+end.

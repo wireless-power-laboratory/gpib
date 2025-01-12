@@ -1,0 +1,65 @@
+    Program Z3805;
+    
+    Const Filename='C:\EZGPIBDATA\Z3805.Txt';
+          Z3805ComPort=2;
+    
+    Var   EFC:String;                                                                         
+          TI:String; 
+          Dummy:String;                                       
+          
+    function Init:Boolean;
+    begin;
+      if EZGPIB_FileExists(Filename)                                //Comment this out if you
+      then EZGPIB_FileDelete(Filename);                             //always want to append
+      Result:=EZGPIB_ComOpen(Z3805ComPort,9600,8,'N',1);            //Open serial port and report result
+    end;
+    
+    function DataAvailable:Boolean;
+    begin;
+      Result:=False;
+      Dummy:=Dummy+EZGPIB_ComRead(Z3805Comport);                     //Add things read from port to buffer vaiable
+      If Pos('>',Dummy)<>0 then                                      //If CR found in buffer variable
+      begin;
+        Dummy:=EZGPIB_ConvertStriptoNumber(Dummy);                   //Remove everything else that in not part of an number
+        Result:=True;
+      end;
+    end;
+    
+    procedure HandleData;
+    begin;
+      EZGPIB_FileClearBuffer;                                       //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer(TI);                                   //Add time to FileBuffer
+      EZGPIB_FileAddtoBuffer(EFC);                                  //Add TIC value ot FileBuffer
+      EZGPIB_FileWrite(Filename);                                   //Append Contents of FileBuffer to FileName
+      EZGPIB_ScreenWrite(TI);
+      EZGPIB_Screenwrite(#9);
+      EZGPIB_ScreenwriteLn(EFC);
+    end;
+    
+    begin;
+      EZGPIB_ScreenClear;
+      EZGPIB_ScreenWrite('Start of program at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+      if init then
+      begin;
+        repeat
+          EZGPIB_TimeWaitforMultipleof(5);
+          Dummy:='';
+          EZGPIB_ComWrite(Z3805Comport,':DIAG:ROSC:EFC:ABS?'+#13); 
+          repeat 
+            EZGPIB_TimeSleep(0.01);
+          until (Dataavailable or EZGPIB_KbdKeyPressed);
+          EFC:=Dummy;
+          Dummy:='';
+          EZGPIB_ComWrite(Z3805Comport,':PTIME:TINTERVAL?'+#13);
+          repeat 
+            EZGPIB_TimeSleep(0.01);          
+          until (Dataavailable or EZGPIB_KbdKeyPressed);
+          TI:=Dummy;  
+          HandleData;                 
+        until EZGPIB_KbdKeyPressed;
+      end
+      else EZGPIB_ScreenWriteLn('Error opening the com port...');
+      EZGPIB_ScreenWrite('Program terminated at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+    end.

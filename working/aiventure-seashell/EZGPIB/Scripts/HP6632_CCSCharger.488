@@ -1,0 +1,42 @@
+Program CCS;
+
+const HP6632=9;
+      current=0.5;
+      filename='C:\EZGPIBData\CCS.Txt';
+
+var voltage1,voltage2:string;
+    v1,v2,ri:double;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename); 
+  EZGPIB_TimeWaitForMultipleOf(60);    
+  EZGPIB_buswritedata(HP6632,'CURRENT '+ EZGPIB_ConvertToDecimalPoint(floattostr(current)));  
+  EZGPIB_buswritedata(HP6632,'VOLTAGE 20.0');
+  EZGPIB_buswritedata(HP6632,'OUTPUT ON');          
+  repeat
+    EZGPIB_buswritedata(HP6632,'CURRENT '+ EZGPIB_ConvertToDecimalPoint(floattostr(current)));
+    EZGPIB_TimeWaitForMultipleOf(60);
+    EZGPIB_buswritedata(HP6632,'MEAS:VOLT?');
+    EZGPIB_buswaitfordata(HP6632,voltage1,5.0);
+    EZGPIB_buswritedata(HP6632,'CURRENT 0.0');
+    EZGPIB_TimeSleep(5.00);
+    EZGPIB_buswritedata(HP6632,'MEAS:VOLT?');    
+    EZGPIB_buswaitfordata(HP6632,voltage2,5.0); 
+    v1:=EZGPIB_ConvertToFloatNumber(voltage1); 
+    v2:=EZGPIB_ConvertToFloatNumber(voltage2);      
+    ri:=(v1-v2)/(current);                                  
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(DateTimetoModifiedJulianDate(EZGPIB_TimeNow)); 
+    EZGPIB_FileAddtoBuffer(voltage1);
+    EZGPIB_FileAddtoBuffer(voltage2); 
+    EZGPIB_FileAddtoBuffer(ri);       
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(voltage1);  
+    EZGPIB_ScreenWrite(' ');      
+    EZGPIB_ScreenWrite(voltage2);
+    EZGPIB_ScreenWriteLn(ri);             
+    EZGPIB_TimeSleep(0.1);                       
+  until true=false;                    
+  EZGPIB_buswritedata(HP6632,'OUTPUT OFF');   
+end.

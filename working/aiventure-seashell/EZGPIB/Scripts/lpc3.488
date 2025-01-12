@@ -1,0 +1,42 @@
+    Program LPC;
+    
+    Const Filename='C:\EZGPIBData\LPC.Txt';
+          Keithley=1;
+          SR620=3;
+          
+    
+    Var   Time:String;
+          dummy1,dummy2:string;
+          r1:Double;
+          
+
+    procedure HandleData;
+    begin;   
+      EZGPIB_BusWriteData(SR620,'MEAS? 0');
+      EZGPIB_BusWaitForData(SR620,Dummy2,1);       
+      Time:=EZGPIB_ConvertToMJD(EZGPIB_TimeNow);                    //Get the time in MJD format
+      Time:=EZGPIB_ConvertStripToNumber(Time);                      //Make sure it uses an decimal point
+      EZGPIB_FileClearBuffer;                                       //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer(Time);                                 //Add time to FileBuffer
+      EZGPIB_FileAddToBuffer(Dummy2);          
+      EZGPIB_FileWrite(Filename);                                   //Append Contents of FileBuffer to FileName
+      EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+      EZGPIB_ScreenWrite(' ');
+      EZGPIB_ScreenWriteLn(dummy2);                               
+      EZGPIB_ChangeLed;
+    end;
+    
+    begin;
+      EZGPIB_BusSettimeout(0.5);
+      EZGPIB_BusFindAllDevices;
+      EZGPIB_BusWriteData(SR620,'AUTM 0');
+      EZGPIB_ScreenClear;
+      EZGPIB_ScreenWrite('Start of program at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+      repeat
+        EZGPIB_TimeWaitforMultipleof(1);
+        HandleData;
+      until EZGPIB_KbdKeyPressed;
+      EZGPIB_ScreenWrite('Program terminated at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+    end.

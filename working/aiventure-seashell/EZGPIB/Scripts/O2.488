@@ -1,0 +1,46 @@
+Program O2Sensor;
+
+const HP3457=10;
+      HP6034=12;
+      Keithley196=1;
+      time=1200.0;
+      filename='C:\EZGPIBData\O2Sensor.Txt';
+
+var voltage:string;
+    temperature:string;
+    temp:double;
+    setpoint:double;
+    start:tdatetime;
+    gemerkt:boolean;
+
+begin;
+  //EZGPIB_buswritedata(HP6034,'C2.0A G');
+  start:=EZGPIB_Timenow;
+  gemerkt:=false;
+  EZGPIB_ScreenClear; 
+  setpoint:=25.0;
+  repeat
+    if ((EZGPIB_Timenow-start)*86400.0)>time then 
+    begin;
+      start:=EZGPIB_Timenow;
+      setpoint:=setpoint+5;
+      if setpoint>=55.0 then setpoint:=25.0;
+    end; 
+    EZGPIB_buswaitfordata(HP3457,voltage,3.0);     
+    EZGPIB_buswaitfordata(Keithley196,temperature,3.0); 
+    temperature:=EZGPIB_ConvertStripToNumber(temperature);            
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(DateTimetoModifiedJulianDate(EZGPIB_TimeNow)); 
+    EZGPIB_FileAddtoBuffer(temperature);
+    EZGPIB_FileAddtoBuffer(voltage);           
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(setpoint);
+    EZGPIB_ScreenWrite('  ');    
+    EZGPIB_ScreenWrite(temp);  
+    EZGPIB_ScreenWrite('  ');
+    EZGPIB_ScreenWriteLn(voltage);
+    temp:=EZGPIB_ConvertToFloatNumber(temperature);
+    //if temp<=setpoint  then EZGPIB_buswritedata(HP6034,'P24.0V G')
+    //                   else EZGPIB_buswritedata(HP6034,'P0.0V G');                       
+  until EZGPIB_KbdKeypressed;
+end.

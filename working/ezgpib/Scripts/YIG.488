@@ -1,0 +1,47 @@
+Program YIG;
+
+const HP3457 = 10;
+      U6200A=21;
+      C1 = -5.802E-5;
+      C2 =  3.90802E-1;
+      filename = 'C:\EZGPIBData\YIG.Txt';
+
+var answer:string;
+    R:Double;
+    T:Double;
+    F:Double;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(ezgpib_timenow);   
+  ezgpib_fileaddtobuffer(T);  
+  ezgpib_fileaddtobuffer(F);                                
+  ezgpib_filewrite(filename);
+end;
+
+begin;
+  EZGPIB_BusEnableEoi; 
+  EZGPIB_BusSetEOSChar(10);
+  EZGPIB_BusSetEos(0);            
+  EZGPIB_BusWriteData(HP3457,'TRIG SGL');
+  repeat
+    EZGPIB_timeWaitformultipleof(1);
+    EZGPIB_BusWriteData(HP3457,'?');
+    EZGPIB_BusWaitForData(HP3457,answer,1.0);
+    Answer:=EZGPIB_ConvertStriptoNumber(Answer);
+    R:=EZGPIB_ConverttoFloatNumber(Answer);
+    T:=C2/(-2*C1)-SQRT(C2*C2/(4*C1*C1)-(R-100)/-C1);
+    EZGPIB_BusWriteData(U6200A,'FETCH:FREQ?');             
+    EZGPIB_BusWaitForData(U6200A,Answer,5.0);
+    Answer:=EZGPIB_ConvertStriptoNumber(Answer); 
+    F:=EZGPIB_ConverttoFloatNumber(Answer);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow); 
+    EZGPIB_ScreenWrite('  ');                
+    EZGPIB_ScreenWrite(T); 
+    EZGPIB_ScreenWrite('  ');     
+    EZGPIB_ScreenWriteln(F);     
+    writefiledata;   
+  until true=false;
+end.

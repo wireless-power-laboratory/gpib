@@ -1,0 +1,14 @@
+Program Test_3;                        // Shows a loop with a timed wait inside
+
+var i,j:integer;                       // Declare 2 variables of integer type
+
+begin
+  ezgpib_screenclear;                  // Clear output console screen
+  for i:=1 to 10 do                    // Loop 10 times
+  begin;                     
+    ezgpib_timeWaitForMultipleOf(2);   // Wait for the the next even second
+    j:= 2 * i;                         // Perform complicated math inside the loop
+    ezgpib_screenwriteln(j);           // Output the result
+  end;
+  ezgpib_screenwriteln('Ready');       // its been that long... better we tell it!
+end.

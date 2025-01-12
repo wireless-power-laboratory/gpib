@@ -1,0 +1,18 @@
+Program HP6632;
+
+const HP6632=21;
+
+begin;
+  EZGPIB_BusFindAllDevices;
+  repeat
+    EZGPIB_BusWriteData(HP6632,'VOLT 20.0');
+    EZGPIB_ScreenGotoxy(1,1);
+    EZGPIB_ScreenWrite('On ');    
+    EZGPIB_TimeSleep(3.0);
+    EZGPIB_BusWriteData(HP6632,'VOLT 0.0');
+    EZGPIB_ScreenGotoxy(1,1);
+    EZGPIB_ScreenWrite('Off');    
+    EZGPIB_TimeSleep(2.0); 
+  until EZGPIB_KbdKeypressed; 
+  EZGPIB_KbdReadKey;  
+end.                   

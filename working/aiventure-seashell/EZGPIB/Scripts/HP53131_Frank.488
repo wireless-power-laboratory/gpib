@@ -1,0 +1,58 @@
+    Program HP53131;
+    
+    Const Filename='C:\EZGPIBDATA\HP53131.Txt';
+          HPPort=3;
+    
+    Var   HP_as_String:String;                                     //What we get from the counter
+          HP_as_Double:Double;                                     //What we make out of it
+          STB:Integer;
+          Time:String;                                             //Where we put the time in
+          
+    procedure Init;
+    begin;
+      if EZGPIB_FileExists(Filename)                                //Comment this out if you
+      then EZGPIB_FileDelete(Filename);                             //always want to append
+      EZGPIB_FileClearBuffer;                                       //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer('Time/MJD');                           //Add two strings to FileBuffer
+      EZGPIB_FileAddtoBuffer('TIC/s');
+      EZGPIB_FileWrite(Filename);                                   //Append Contents of FileBuffer to FileName
+    end;
+    
+    
+    procedure HandleData;
+    begin;
+      Time:=EZGPIB_ConvertToMJD(EZGPIB_TimeNow);                    //Get the time in MJD format
+      Time:=EZGPIB_ConvertStripToNumber(Time);                      //Make sure it uses an decimal point
+      EZGPIB_FileClearBuffer;                                       //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer(Time);                                 //Add time to FileBuffer
+      EZGPIB_FileAddtoBuffer(Hp_as_Double);                         //Add TIC value ot FileBuffer
+      EZGPIB_FileWrite(Filename);                                   //Append Contents of FileBuffer to FileName
+      EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+      EZGPIB_ScreenWrite(' ');    
+      EZGPIB_ScreenWriteLn(Hp_as_Double);      
+    end;
+    
+    begin;
+      Init;
+      EZGPIB_ScreenClear;
+      EZGPIB_BuswriteData(HPPort,'*IDN?');
+      EZGPIB_BusWaitForData(HPPort,hp_as_string,10.0);
+      EZGPIB_ScreenWriteLn(hp_as_string);     
+      repeat
+        repeat
+          EZGPIB_BuswriteData(HPPort,'*STB?');
+          EZGPIB_BusWaitForData(HPPort,hp_as_string,1.0);
+          hp_as_string:=EZGPIB_ConvertStripToNumber(hp_as_string);
+          Hp_as_Double:=EZGPIB_ConvertToFloatNumber(hp_as_string);
+          STB:=Round(Hp_as_Double);
+          EZGPIB_ScreenWriteLn(STB);
+          EZGPIB_TimeSleep(0.1); 
+        until (STB and 64)<>0;
+        EZGPIB_BuswriteData(HPPort,':READ?');
+        EZGPIB_BusWaitForData(HPPort,hp_as_string,1.0);
+        hp_as_string:=EZGPIB_ConvertStripToNumber(hp_as_string);
+        Hp_as_Double:=EZGPIB_ConvertToFloatNumber(hp_as_string);
+        HandleData;
+        EZGPIB_TimeSleep(0.001);           
+      until EZGPIB_KbdKeypressed;
+    end.

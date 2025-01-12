@@ -1,0 +1,20 @@
+Program Test_4;                        // Loop until user presses a key...
+
+var i,j:integer;                       // Declare 2 variables of integer type
+    ch:char;                           // Declare a variable of character type
+
+begin
+  ezgpib_screenclear;                  // Clear output console screen
+  i:=0;
+  repeat                               // Loop until...
+    ezgpib_TimeWaitForMultipleOf(1);   // Wait for the the next second
+    i:=i+1;
+    j:= 2 * i;                         // Perform complicated math inside the loop
+    ezgpib_screenwriteln(j);           // Output the result
+  until ezgpib_kbdkeypressed;          // Loop until user presses key
+  ch:=ezgpib_kbdreadkey;               // Get the key!
+  ezgpib_screenwriteln('Ready');       // Its been that long... better we tell it!
+  ezgpib_screenwrite('You used the "');// Make some additional comments in the end
+  ezgpib_screenwrite(ch);
+  ezgpib_screenwrite('" key to terminate the program...');
+end.

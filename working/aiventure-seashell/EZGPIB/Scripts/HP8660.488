@@ -1,0 +1,23 @@
+Program Revitalize_HP8660;
+
+const 
+  HP8660 = 20;
+var 
+  level:Integer;
+
+procedure SetLevel(Dbm:Integer);
+begin;
+  if DBM>=0 then EZGPIB_BusWriteData(HP8660,'AP'+inttostr(Dbm)+'dm')
+            else EZGPIB_BusWriteData(HP8660,'AP'+inttostr(-Dbm)+'-dm')
+end;
+
+begin;
+  Level:=10;
+  EZGPIB_BusWriteData(HP8660,'NEW');
+  repeat
+    SetLevel(Level);
+    Dec(Level);
+    if Level=-20 then Level:=10;
+    EZGPIB_Timesleep(2.0);
+  until EZGPIB_KbdKeypressed;  
+end.

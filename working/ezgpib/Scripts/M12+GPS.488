@@ -1,0 +1,250 @@
+    Program M12;
+    
+    Const 
+      Filename      = 'C:\EZGPIBData\M12.Txt';
+      M12Port       = 2;
+      HaMessageLen  = 154;
+      HnMessageLen  = 78;
+      BbMessageLen  = 92;
+          
+    Type    
+      TSatData =    Record
+                      Id:Byte;    
+                      TrackingMode:Byte; 
+                      Carriernoise:Byte; 
+                      Iode:Byte;
+                      Channelstatus:Word;
+                    end;
+
+     TRaimSatData = Record
+                      Id:Byte;           
+                      TimeEstimate:Double;
+                    end;
+
+     TChannelData = Record
+                      Id:Byte;      
+                      Doppler:Integer;
+                      Elevation:Byte;
+                      Azimuth:Word; 
+                      Health:Byte; 
+                    end;
+
+     TGpsData =     Record
+                      DateString:String;
+                      TimeString:String;
+                      Month:Integer;
+                      Day:Integer;
+                      Year:Integer;
+                      Hour:Integer;
+                      Minute:Integer;
+                      Second:Integer;
+                      FracSecond:Double;
+                      Latitude:Extended; 
+                      Longitude:Extended; 
+                      Velocity:Double;     
+                      Heading:Double;     
+                      Height:Double;    
+                      Dop:Double;        
+                      VisSats:Byte;       
+                      TrackSats:Byte;
+                      SatData:Array [0..11] of TSatdata;
+                      RecStatus:Word;
+                      ClockBias:Integer;
+                      OscOffset:Longint;
+                      Temperature:Integer;
+                      Temperature_R:Double;
+                      UtcPara:Byte;       
+                      PulsStatus:Byte; 
+                      PulsReference:Byte; 
+                      SolutionStatus:Byte;
+                      RaimStatus:Byte;     
+                      Sigma:Word;          
+                      SawtoothErr:ShortInt;
+                      RaimSatData:Array [0..11] of TRaimSatData;
+                      ChannelData:Array [0..11] of TChannelData;
+                    end;      
+    
+    Var                                                
+      Gps:String;
+      GPSData:TGPSData;
+      GPSTime:TDateTime;
+          
+
+function CheckCRC(Start,Laenge:Integer):Boolean;
+var i:integer;
+    sum:byte;
+begin;
+  Result:=False;
+  If (Start+Laenge-2)>512 then exit;
+  sum:=0;
+  try
+    For i:=(Start+2) to (Start+Laenge-4) do sum:=sum xor ord(gps[i]);
+    if chr(sum)=gps[Start+Laenge-3] then Result:=True;
+  except
+  end;
+end;
+    
+function Decode_Position:Boolean;
+var p,i:Integer;
+begin;
+  Result:=False;
+  p:=pos('@@Ha',gps);
+  if p<>0 then 
+  begin;
+    if not CheckCRC(p,HaMessageLen) then exit;
+    Result:=True;
+    GPSData.Month := ord(gps[p+4]);
+    GPSData.Day   := ord(gps[p+5]);
+    GPSData.Year  := ord(gps[p+6]) shl 8 + ord(gps[p+7]);
+    GPSData.Hour  := ord(gps[p+8]);
+    GPSData.Minute := ord(gps[p+9]);
+    GPSData.Second := ord(gps[p+10]);       
+    GPSData.FracSecond :=(double(ord(gps[p+11]))*16777216.0
+                         +double(ord(gps[p+12]))*65536.0
+                         +double(ord(gps[p+13]))*256.0
+                         +double(ord(gps[p+14]))*1.0)/1000000000.0;
+    GPSData.Latitude :=  (double(ord(gps[p+15]) and 127)*16777216.0
+                         +double(ord(gps[p+16]))*65536.0
+                         +double(ord(gps[p+17]))*256.0
+                         +double(ord(gps[p+18]))*1.0) / 324000000.0*90.0;
+    if (ord(gps[p+15]) and 128)<>0 then GPSData.Latitude:=(-1)*GPSData.Latitude;
+    GPSData.Longitude := (double(ord(gps[p+19]) and 127)*16777216.0
+                         +double(ord(gps[p+20]))*65536.0
+                         +double(ord(gps[p+21]))*256.0
+                         +double(ord(gps[p+22]))*1.0) / 648000000.0*180.0;
+    if (ord(gps[p+19]) and 128)<>0 then GPSData.Longitude:=(-1)*GPSData.Longitude;
+    GPSData.Height :=    (double(ord(gps[p+23]) and 127)*16777216.0
+                         +double(ord(gps[p+24]))*65536.0
+                         +double(ord(gps[p+25]))*256.0
+                         +double(ord(gps[p+26]))*1.0) / 100.0;
+    if (ord(gps[p+27]) and 128)<>0 then GPSData.Height:=(-1)*GPSData.Height;
+    GPSData.Velocity :=   (double(ord(gps[p+49]))*256.0 + double(ord(gps[p+50]))) / 100.0;
+    GPSData.Heading  :=   (double(ord(gps[p+51]))*256.0 + double(ord(gps[p+52]))) / 10.0;
+    GPSData.Dop      :=   (double(ord(gps[p+53]))*256.0 + double(ord(gps[p+54])));
+    GPSData.VisSats  :=   ord(gps[p+55]);
+    GPSData.TrackSats :=  ord(gps[p+56]);
+    for i:= 0 to 11 do
+    begin;
+      GPSData.satdata[i].Id :=            ord(gps[p+6*i+57]);
+      GPSData.satdata[i].TrackingMode :=  ord(gps[p+6*i+58]);
+      GPSData.satdata[i].Carriernoise :=  ord(gps[p+6*i+59]);
+      GPSData.satdata[i].Iode :=          ord(gps[p+6*i+60]);
+      GPSData.satdata[i].ChannelStatus:=  (ord(gps[p+6*i+61]) shl 8) + ord(gps[p+6*i+62]);
+    end;
+    GPSData.RecStatus := ord(gps[p+129]) shl 8 + ord(gps[p+130]);
+    GPSData.ClockBias := ord(gps[p+133]) shl 8 + ord(gps[p+134]);
+    GPSData.OscOffset := ord(gps[p+135]) shl 24 +
+                         ord(gps[p+136]) shl 16 +
+                         ord(gps[p+137]) shl 8  +
+                         ord(gps[p+138]);
+    GPSData.Temperature:=ord(gps[p+139]) shl 8 + ord(gps[p+140]);
+    GPSData.Temperature_R:=GPSData.Temperature/2.0;
+    GPSData.UtcPara:=ord(gps[p+141]);
+  end;
+end;
+
+function Decode_Raim:Boolean;
+var p,i:Integer;
+begin;
+  Result:=False;
+  p:=pos('@@Hn',gps);
+  if p<>0 then
+  begin;
+    if not CheckCRC(p,HnMessageLen) then exit;
+    Result:=True;
+    GPSData.PulsStatus     := ord(gps[p+4]);
+    GPSData.PulsReference  := ord(gps[p+5]);
+    GPSData.SolutionStatus := ord(gps[p+6]);
+    GPSData.RaimStatus     := ord(gps[p+7]);
+    GPSData.Sigma          := ord(gps[p+12]) shl 8 + ord(gps[p+13]);
+    GPSData.SawtoothErr    := ord(gps[p+14]);
+    for i:= 0 to 11 do
+    begin;
+      GPSData.RaimSatData[i].Id:= ord(gps[p+5*i+15]);
+      GPSData.RaimSatData[i].TimeEstimate:= double(ord(gps[p+5*i+16]) and 127)*16777216.0
+                                           +double(ord(gps[p+5*i+17]))*65536.0
+                                           +double(ord(gps[p+5*i+18]))*256.0
+                                           +double(ord(gps[p+5*i+19]))*1.0;
+    end;
+  end;
+end;
+
+function Decode_Visibility:Boolean;
+var p,i:Integer;
+begin;
+  Result:=False;
+  p:=pos('@@Bb',gps);
+  if p<>0 then 
+  begin;
+    if not CheckCRC(p,BbMessageLen) then exit;
+    Result:=True;
+    for i:= 0 to 11 do
+    begin;
+      GPSData.ChannelData[i].Id        := ord(gps[p+7*i+5]);
+      GPSData.ChannelData[i].Doppler   := (ord(gps[p+7*i+6]) and 127) shl 8 + ord(gps[p+7*i+7]);
+      if (ord(gps[p+7*i+6]) and 128)<>0 then 
+      GPSData.ChannelData[i].Doppler:=(-1)*GPSData.ChannelData[i].Doppler;
+      GPSData.ChannelData[i].Elevation := ord(gps[p+7*i+8]);
+      GPSData.ChannelData[i].Azimuth   := ord(gps[p+7*i+9]) shl 8 + ord(gps[p+7*i+10]);
+      GPSData.ChannelData[i].Health    := ord(gps[p+7*i+11]);
+    end;
+  end;
+end;
+
+function Init:Boolean;
+  begin;
+  EZGPIB_FileDelete(Filename);                                  
+  EZGPIB_FileClearBuffer;                                       
+  EZGPIB_FileAddToBuffer('Time/MJD');                           
+  EZGPIB_FileAddtoBuffer('SAW/ns');
+  EZGPIB_FileAddtoBuffer('TIC/s');  
+  EZGPIB_FileWrite(Filename);                                                                          
+  Result:=EZGPIB_ComOpen(M12Port,9600,8,'N',1);                  
+end;
+    
+function HandleData:Boolean;
+begin;
+  Gps:=EZGPIB_ComRead(M12Port);
+  Result:=Length(Gps)<>0;
+  Decode_Position;
+  Decode_Raim;
+  Decode_Visibility;
+  GPSTime:=EncodeDateTime(GPSData.Year,GPSData.Month,GPSData.Day,GPSData.Hour,GPSData.Minute,GPSData.Second,0);
+  //Add the read of the HP5334 here
+  EZGPIB_FileClearBuffer;
+  EZGPIB_FileAddtoBuffer(DateTimeToModifiedJulianDate(GPSTime));
+  EZGPIB_FileAddtoBuffer(gpsdata.SawtoothErr);
+  EZGPIB_Filewrite(Filename);  
+end;
+
+function pps:Boolean;
+begin;
+  result:=EZGPIB_ComCts(M12Port) or EZGPIB_ComDsr(M12Port) or EZGPIB_ComDcd(M12Port) or EZGPIB_ComRi(M12Port);
+end;
+    
+begin;
+  EZGPIB_ScreenClear;
+  EZGPIB_ScreenWrite('Start of program at ');
+  EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+  if init then
+  begin;
+    repeat
+      If pps then 
+      begin;
+        if HandleData then
+        begin;
+          EZGPIB_ScreenWrite(GPSTime);
+          EZGPIB_ScreenWrite(' ');
+          EZGPIB_ScreenWriteLn(gpsdata.sawtootherr);
+        end;
+        repeat 
+        until pps=False;
+      end;
+      EZGPIB_TimeSleep(0.001);
+    until EZGPIB_KbdKeyPressed;
+  end
+  else EZGPIB_ScreenWrite('Error opening the com port...');
+  EZGPIB_ScreenWriteLn('');  
+  EZGPIB_ScreenWrite('Program terminated at ');
+  EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+end.

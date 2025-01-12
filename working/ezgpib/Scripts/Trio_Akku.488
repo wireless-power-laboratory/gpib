@@ -1,0 +1,54 @@
+Program HP3457;
+
+const HP3457 = 10;
+      Keithley196 = 1;
+      filename = 'C:\EZGPIBData\Trio2.Txt';
+
+var answer:string;
+    Voltage:Double;
+    Current:Double;
+    Capacity:Double;
+    Power:Double;
+    Energy:Double;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(Voltage);  
+  ezgpib_fileaddtobuffer(Current);
+  ezgpib_fileaddtobuffer(Capacity);  
+  ezgpib_fileaddtobuffer(Power); 
+  ezgpib_fileaddtobuffer(Energy);                                    
+  ezgpib_filewrite(filename);
+end;
+
+begin;
+  Capacity:=0;
+  Energy:=0.0;
+  EZGPIB_ScreenClear;
+  EZGPIB_BusWriteData(HP3457,'TRIG SGL');
+  repeat
+    EZGPIB_timeWaitformultipleof(1);
+    EZGPIB_BusWriteData(HP3457,'?');
+    EZGPIB_BusWaitForData(Keithley196,answer,1.0);
+    Current:=EZGPIB_ConverttoFloatNumber(EZGPIB_ConvertStriptoNumber(Answer));        
+    EZGPIB_BusWaitForData(HP3457,answer,1.0);
+    Voltage:=EZGPIB_ConverttoFloatNumber(EZGPIB_ConvertStriptoNumber(Answer));
+    Capacity:=Capacity+Current/3600.0;    
+    Power:=Current*Voltage;
+    Energy:=Energy+Power/3600.00;
+    EZGPIB_Screenwrite(ezgpib_timenow);
+    EZGPIB_Screenwrite(' ');        
+    EZGPIB_Screenwrite(Voltage);
+    EZGPIB_Screenwrite(' ');    
+    EZGPIB_Screenwrite(Current);
+    EZGPIB_Screenwrite(' ');  
+    EZGPIB_Screenwrite(Capacity);
+    EZGPIB_Screenwrite(' ');         
+    EZGPIB_Screenwrite(Power);
+    EZGPIB_Screenwrite(' '); 
+    EZGPIB_ScreenwriteLn(Energy);                
+    writefiledata;   
+  until true=false;
+end.

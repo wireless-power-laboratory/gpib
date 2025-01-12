@@ -1,0 +1,13 @@
+Program Sound;
+
+var i:Integer;
+
+begin;
+  for i:=1 to 19 do
+  begin;
+    EZGPIB_Screenwrite('Now playing Sound # ');
+    EZGPIB_Screenwriteln(i);
+    EZGPIB_Sound(i);
+    EZGPIB_TimeSleep(2.0);
+  end;
+end.

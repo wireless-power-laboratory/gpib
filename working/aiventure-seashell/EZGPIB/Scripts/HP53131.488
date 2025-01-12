@@ -1,0 +1,64 @@
+    Program HP53131;
+    
+    Const Filename='C:\MyMeasurements\HP53131.Txt';
+          HPPort=1;
+    
+    Var   HP_as_String:String;                                     //What we get from the counter
+          HP_as_Double:Double;                                     //What we make out of it
+          Time:String;                                             //Where we put the time in
+          
+    function Init:Boolean;
+    begin;
+      if EZGPIB_FileExists(Filename)                                //Comment this out if you
+      then EZGPIB_FileDelete(Filename);                             //always want to append
+      EZGPIB_FileClearBuffer;                                       //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer('Time/MJD');                           //Add two strings to FileBuffer
+      EZGPIB_FileAddtoBuffer('TIC/s');
+      EZGPIB_FileWrite(Filename);                                   //Append Contents of FileBuffer to FileName
+      HP_as_String:='';                                             //Initialize some vars...
+      Result:=EZGPIB_ComOpen(HPPort,9600,8,'N',1);                  //Open serial port and report result
+    end;
+    
+    function DataAvailable:Boolean;
+    begin;
+      Result:=False;
+      HP_as_String:=HP_as_String+EZGPIB_ComRead(HPPort);            //Add things read from port to buffer vaiable
+      If Pos(#13+#10,HP_as_String)<>0 then                          //If CR+LF found in buffer variable
+      begin;
+        EZGPIB_ConvertRemove(',',HP_as_String);                     //Remove unwanted Comma
+        HP_as_String:=EZGPIB_ConvertStriptoNumber(HP_as_String);    //Remove everything else that in not part of an number
+        Hp_as_Double:=EZGPIB_ConvertToFloatNumber(HP_as_String);    //Convert string to Double
+        Hp_as_Double:=HP_as_Double * 1.0E-6;                        //53151's numbers are in µs!
+        Result:=True;
+      end;
+    end;
+    
+    procedure HandleData;
+    begin;
+      Time:=EZGPIB_ConvertToMJD(EZGPIB_TimeNow);                    //Get the time in MJD format
+      Time:=EZGPIB_ConvertStripToNumber(Time);                      //Make sure it uses an decimal point
+      EZGPIB_FileClearBuffer;                                       //Clear The Filebuffer
+      EZGPIB_FileAddToBuffer(Time);                                 //Add time to FileBuffer
+      EZGPIB_FileAddtoBuffer(Hp_as_Double);                         //Add TIC value ot FileBuffer
+      EZGPIB_FileWrite(Filename);                                   //Append Contents of FileBuffer to FileName
+      EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+      EZGPIB_ScreenWrite(' ');
+      EZGPIB_ScreenWriteLn(Hp_as_Double);      
+      Hp_as_String:=''                                              //Reset string buffer variable
+    end;
+    
+    begin;
+      EZGPIB_ScreenClear;
+      EZGPIB_ScreenWrite('Start of program at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+      if init then
+      begin;
+        repeat
+          If DataAvailable then HandleData;
+          EZGPIB_TimeSleep(0.1)
+        until EZGPIB_KbdKeyPressed;
+      end
+      else EZGPIB_ScreenWriteLn('Error opening the com port...');
+      EZGPIB_ScreenWrite('Program terminated at ');
+      EZGPIB_ScreenWriteLn(EZGPIB_TimeNow);
+    end.

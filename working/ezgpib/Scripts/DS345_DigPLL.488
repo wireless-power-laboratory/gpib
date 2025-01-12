@@ -1,0 +1,60 @@
+Program HP3457AOnly;
+
+const HP3457=10;
+      DS345 =17;
+      fsetpoint=0;
+      fIMin=-100;
+      fIMax=100;
+      fPGain=0.2;
+      fIGain=0.02;
+      fDGain=0.0;
+      filename='C:\EZGPIBData\Mixer.Txt';
+
+var answer:string;
+    dummy:double;
+    PTerm:Extended;
+    ITerm:Extended;
+    DTerm:Extended;
+    Error:Extended;
+    fISTate:Extended;
+    fDSTate:Extended;
+    fOut:Extended;
+    fProcessvalue:Extended;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename); 
+  EZGPIB_buswritedata(HP3457,'LFREQ?');
+  EZGPIB_buswaitfordata(HP3457,answer,3.0); 
+  EZGPIB_ScreenWriteln(Answer);
+  EZGPIB_BuswriteData(DS345,'FREQ 10000000.0');
+  EZGPIB_TimeSleep(5.0);            
+  repeat
+    EZGPIB_buswaitfordata(HP3457,answer,3.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);   
+    EZGPIB_FileClearBuffer;
+    dummy:=EZGPIB_TimeNow
+    EZGPIB_FileAddtoBuffer(dummy); 
+    EZGPIB_FileAddtoBuffer(answer);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWrite(answer); 
+    fprocessvalue:=EZGPIB_ConverttoFloatNumber(Answer);
+    Error:=fProcessValue-fSetPoint;
+    PTerm:=fPGain*Error;
+    fIState:=fIState+Error;
+    if fIState>fIMax then fIState:=fIMax
+    else
+    if fIState<fIMin then fIState:=fIMin;
+    ITerm:=fIState * fIGain;
+    DTerm:=fDGain*(fProcessValue-fDState);
+    fDState:=fProcessValue;
+    fOut:=9999999.986-(PTerm+ITerm-DTerm);
+    answer:=EZGPIB_convertStriptonumber(fOut);
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteLn(fout);         
+    EZGPIB_BuswriteData(DS345,'FREQ '+answer);
+    EZGPIB_FileAddtoBuffer(answer);
+    EZGPIB_FileWrite(Filename);                  
+  until EZGPIB_KbdKeypressed;
+end.

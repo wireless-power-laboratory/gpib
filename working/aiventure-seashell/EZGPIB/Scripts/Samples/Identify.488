@@ -1,0 +1,5 @@
+Program Identify;
+
+begin;
+  EZGPIB_BusFindAllDevices;
+end.

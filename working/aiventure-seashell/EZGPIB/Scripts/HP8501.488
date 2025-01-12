@@ -1,0 +1,24 @@
+Program Normalizer;
+
+const 
+  HP8501 = 14;  //Adresse des Geräts auf dem Bus
+  
+var
+  Y:Array [1..500] of Integer;
+  i:Integer;
+  Answer:String;
+
+begin;
+  EZGPIB_ScreenClear;
+  EZGPIB_BuswriteData(HP8501,'P3');
+  for i:=1 to 500 do
+  begin
+    EZGPIB_BusWaitForData(HP8501,Answer,0.3);
+    Answer:=EZGPIB_ConvertStripToNumber(Answer);
+    Y[i]:=EZGPIB_ConvertToIntNumber(Answer);
+    EZGPIB_ScreenWrite(i);
+    EZGPIB_ScreenWrite('  ');
+    EZGPIB_ScreenWriteLn(answer);
+    if EZGPIB_KbdKeyPressed then Exit;        
+  end;
+end.

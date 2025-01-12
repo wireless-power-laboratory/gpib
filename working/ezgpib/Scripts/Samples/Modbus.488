@@ -1,0 +1,14 @@
+Program Modbus;
+
+const Port = 7;
+      ModbusAddress = 100;
+      RegisterNumber = 7;
+      Timeout = 0.5;
+      
+var   RegisterValue:Double;
+
+begin;
+  EZGPIB_ComOpen(Port,9600,8,'N',1);
+  RegisterValue:=EZGPIB_ModbusReadInputregister(Port,Modbusaddress,RegisterNumber,Timeout);  
+  EZGPIB_ScreenWriteLn(RegisterValue);
+end.

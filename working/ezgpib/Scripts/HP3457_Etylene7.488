@@ -1,0 +1,28 @@
+Program HP3457;
+
+const HP3457 = 10;
+      filename = 'C:\EZGPIBDATA\ETHYLEN.Txt';
+
+var answer:string;
+    V:Double;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(V);                               
+  ezgpib_filewrite(filename);
+end;
+
+begin;
+  EZGPIB_BusWriteData(HP3457,'TRIG SGL');
+  repeat
+    EZGPIB_timeWaitformultipleof(1);
+    EZGPIB_BusWriteData(HP3457,'?');
+    EZGPIB_BusWaitForData(HP3457,answer,1.0);
+    Answer:=EZGPIB_ConvertStriptoNumber(Answer);
+    V:=EZGPIB_ConverttoFloatNumber(Answer);
+    EZGPIB_ScreenWriteln(v); 
+    writefiledata;   
+  until true=false;
+end.

@@ -1,0 +1,46 @@
+Program SR620;                                             // Shows the use of WaitSrq, SourceOfSrq
+                                                           // and WaitForData
+const SR620=11;
+      HP3457 = 10;
+      filename='C:\EZGPIBData\OffsetGenDither2.Txt';
+
+var SR620Count:string;                                     // Declare a variable of date/time type
+    Answer:String;
+    
+procedure Init;
+begin;                                    
+  ezgpib_screenClear;                                      // Clear output console screen
+  ezgpib_screenwriteln('Checking for devices');            // Tell user what we are doing...                       
+  ezgpib_BusIFC;                                           // Send a IFC to Prologix USB <-> GPIB converter
+end;
+
+procedure writefileheader;
+begin;
+  //ezgpib_filedelete(filename);                            // If the file exists, delete it
+  ezgpib_fileclearbuffer;                                 // Clear the file's Dataline
+  ezgpib_fileaddtobuffer('Date&Time/MJD');                // Add the first header
+  ezgpib_fileaddtobuffer('Delta_t/s');                    // Add the third header  
+  ezgpib_filewrite(filename);                             // Write Dataline to file
+end;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(SR620Count);   
+  ezgpib_fileaddtobuffer(Answer);                               
+  ezgpib_filewrite(filename);
+end;
+
+begin  
+  WriteFileHeader;                                       
+  Init;                                               
+  repeat
+    EZGPIB_BusWriteData(SR620,'MEAS? 0');       
+    EZGPIB_BusWaitForData(SR620,SR620Count,5.0);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+    EZGPIB_ScreenWrite(' ');    
+    EZGPIB_ScreenWriteLn(SR620count);    
+    WriteFileData;
+  until ezgpib_kbdKeyPressed;
+end.

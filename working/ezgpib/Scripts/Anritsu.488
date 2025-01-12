@@ -1,0 +1,26 @@
+Program Anritsu;    
+                                      
+const Anritsu=16;
+      filename='C:\EZGPIBData\Anritsu.Txt';
+
+var Answer:String;
+    
+procedure Init;
+begin;                                    
+  ezgpib_screenClear;                                      // Clear output console screen
+  ezgpib_screenwriteln('Checking for devices');            // Tell user what we are doing...                       
+  ezgpib_BusIFC;                                           // Send a IFC to Prologix USB <-> GPIB converter
+  //ezgpib_BusFindAllDevices;                                // Find all active GPIB device
+end;
+
+begin                                        
+  Init;                                     
+  repeat
+    EZGPIB_TimeWaitForMultipleOf(5);
+    EZGPIB_BusWriteData(Anritsu,'INI');       
+    //EZGPIB_BusWaitForData(Anritsu,Answer,5.0);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);
+    EZGPIB_ScreenWrite(' ');    
+    EZGPIB_ScreenWriteLn(Answer);    
+  until ezgpib_kbdKeyPressed;
+end.

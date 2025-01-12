@@ -1,0 +1,56 @@
+Program VISA; // Demonstrates VISA communication
+
+var Status:Integer;
+    CountWritten:Integer;
+    CountRead:Integer;
+    RM:Integer;
+    VI:Integer;
+    Answer:String;        
+
+begin;
+  EZGPIB_ScreenClear;
+  
+  Status:=EZGPIB_viOpendefaultRM(RM);
+  EZGPIB_screenwrite ('Status for VISA session start: ');
+  EZGPIB_screenwriteln(Status); 
+  
+  Status:=EZGPIB_viOpen(RM,'GPIB0::9::INSTR',0,0,VI);
+  EZGPIB_screenwrite ('Status for VISA connect to instrument: ');
+  EZGPIB_screenwriteln(Status);  
+  
+  Status:=EZGPIB_viWrite(VI,'OUTPUT ON',CountWritten);
+  EZGPIB_screenwrite ('Status for VISA write to instrument: ');
+  EZGPIB_screenwrite(Status); 
+  EZGPIB_screenwrite(' Chars written: '); 
+  EZGPIB_screenwriteln(CountWritten);  
+  
+  Status:=EZGPIB_viWrite(VI,'VOLT 12.500',CountWritten);
+  EZGPIB_screenwrite ('Status for VISA write to instrument: ');
+  EZGPIB_screenwrite(Status); 
+  EZGPIB_screenwrite(' Chars written: '); 
+  EZGPIB_screenwriteln(CountWritten); 
+  
+  Status:=EZGPIB_viClose(VI);
+  EZGPIB_screenwrite ('Status for VISA close connection: ');
+  EZGPIB_screenwriteln(Status); 
+  
+  Status:=EZGPIB_viOpen(RM,'GPIB0::10::INSTR',0,11,VI);
+  EZGPIB_screenwriteln(Status); 
+  Status:=EZGPIB_viWrite(VI,'END ALWAYS',CountWritten); 
+  EZGPIB_screenwriteln(Status);                
+  Status:=EZGPIB_viWrite(VI,'DCV',CountWritten); 
+  EZGPIB_screenwriteln(Status); 
+  Status:=EZGPIB_viWrite(VI,'NRDGS 1,SYN',CountWritten); 
+  EZGPIB_screenwriteln(Status);   
+  Status:=EZGPIB_viWrite(VI,'TRIG SGL',CountWritten); 
+  EZGPIB_screenwriteln(Status);                    
+  Status:=EZGPIB_viRead(VI,Answer,CountRead);
+  EZGPIB_screenwrite ('Status for VISA read from instrument: ');
+  EZGPIB_screenwrite(Status); 
+  EZGPIB_screenwrite(' Chars read: '); 
+  EZGPIB_screenwrite(CountRead); 
+  EZGPIB_screenwrite(' Answer: '); 
+  EZGPIB_screenwriteln(Answer);
+  Status:=EZGPIB_viClose(VI); 
+          
+end.

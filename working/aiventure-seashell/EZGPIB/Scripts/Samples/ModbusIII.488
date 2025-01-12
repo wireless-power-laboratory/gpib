@@ -1,0 +1,14 @@
+Program Modbus;
+
+const Port = 7;
+      ModbusAddress = 100;
+      RegisterNumber = 22;
+      Timeout = 0.5;
+      
+var   RealValue:Double;
+
+begin;
+  EZGPIB_ComOpen(Port,9600,8,'N',1);
+  RealValue:=EZGPIB_ModbusReadInputReal(Port,Modbusaddress,RegisterNumber,Timeout);  
+  EZGPIB_ScreenWriteLn(RealValue);
+end.

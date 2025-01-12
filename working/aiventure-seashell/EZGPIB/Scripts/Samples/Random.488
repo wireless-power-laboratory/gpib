@@ -1,0 +1,29 @@
+Program RandomGenerator;
+
+const Filename='C:\RandomData.Txt';
+
+var grnumber:extended;
+    urnumber:extended;
+    mean:extended;
+    StdDev:Extended;
+    var i:integer;
+begin;
+  Mean:=10;
+  StdDev:=3;
+  EZGPIB_Randomize;
+  for i:=1 to 100000 do
+  begin;
+    grnumber:=RandG(Mean,StdDev);
+    urnumber:=EZGPIB_Random(5);
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(grnumber);
+    EZGPIB_FileAddtoBuffer(urnumber);
+    EZGPIB_FileWrite(Filename);
+    if (i mod 1000)=0 then  
+    begin;
+      EZGPIB_ScreenWrite(GRNumber);
+      EZGPIB_ScreenWrite(' ');
+      EZGPIB_ScreenWriteLn(URNumber); 
+    end;     
+  end;
+end.

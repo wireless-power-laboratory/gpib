@@ -1,0 +1,35 @@
+Program PlotTest;
+
+const filename=      'C:\EZGPIBData\Test.Plt';
+      deviceaddress= 14;
+      timeout=       30.0;
+
+var Answer:string;
+    
+procedure Init;
+begin;                                    
+  ezgpib_screenClear;                                      
+  ezgpib_screenwriteln('Checking for devices');                                 
+  ezgpib_BusIFC;                                       
+  ezgpib_BusFindAllDevices; 
+  ezgpib_screenwriteln('Make your device send the plot file now...');                          
+end;
+
+procedure writefiledata;
+begin;
+  if EZGPIB_FileExists(Filename) then EZGPIB_FileDelete(Filename);
+  EZGPIB_FileAddToBuffer(Answer);                               
+  EZGPIB_FileWrite(Filename);
+end;
+
+begin                                       
+  Init;     
+  Answer:='';                                              
+  EZGPIB_BusWaitForData(Deviceaddress,Answer,TimeOut);
+  if Answer<>'' then 
+  begin;
+    WriteFileData;
+    ezgpib_screenwriteln('Plot-File successfully written');
+  end
+  else ezgpib_screenwriteln('Received nothing within timeout, program terminated...');       
+end.

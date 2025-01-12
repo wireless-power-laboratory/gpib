@@ -1,0 +1,74 @@
+Program VISA; // Demonstrates VISA communication
+
+const HP3478A = 3; //Need to add to the instrument line
+      DelayMeasurement = 1; //Delay in seconds
+      C1 = -5.802E-5;
+      C2 =  3.90802E-1;
+      filename = 'C:\Test\HP3478AVoltLog.Txt';
+
+var Status:Integer;
+    CountWritten:Integer;
+    CountRead:Integer;
+    RM:Integer;
+    VI:Integer;
+    Answer:String;        
+    R:Double;
+    T:String;
+
+procedure writefiledata;
+begin;
+  ezgpib_fileclearbuffer;
+//  ezgpib_fileaddtobuffer(ezgpib_convertToMJD(ezgpib_timenow));// Convert data&time into 'Modified Julian Date'  
+  ezgpib_fileaddtobuffer(ezgpib_timenow);// Write Actual Time  
+  ezgpib_fileaddtobuffer(T);                               
+  ezgpib_filewrite(filename);
+end;
+
+
+begin;
+  EZGPIB_ScreenClear;
+  
+  Status:=EZGPIB_viOpendefaultRM(RM);
+  EZGPIB_screenwrite ('Status for VISA session start: ');
+  EZGPIB_screenwriteln(Status); 
+  
+  Status:=EZGPIB_viOpen(RM,'GPIB0::3::INSTR',0,0,VI);
+  EZGPIB_screenwrite ('Status for VISA connect to instrument: ');
+  EZGPIB_screenwriteln(Status);  
+  
+// Send 12 characters
+//  Status:=EZGPIB_viWrite(VI,'D2ROMAN BUDEK!',CountWritten);
+//  EZGPIB_screenwrite ('Status for VISA Display write to instrument: ');
+//  EZGPIB_screenwrite(Status); 
+//  EZGPIB_screenwrite(' Chars written: '); 
+//  EZGPIB_screenwriteln(CountWritten);  
+  
+  Status:=EZGPIB_viWrite(VI,'D1',CountWritten);
+  EZGPIB_screenwrite ('Status for VISA Display write to instrument: ');
+  EZGPIB_screenwrite(Status); 
+  EZGPIB_screenwrite(' Chars written: '); 
+  EZGPIB_screenwriteln(CountWritten);  
+
+  Status:=EZGPIB_viWrite(VI,'F1RAZ1N4T3',CountWritten); 
+  EZGPIB_screenwriteln(Status); 
+  Status:=EZGPIB_viRead(VI,Answer,CountRead);
+  EZGPIB_screenwrite ('Status for VISA read from instrument: ');
+  EZGPIB_screenwrite(Status); 
+  EZGPIB_screenwrite(' Chars read: '); 
+  EZGPIB_screenwrite(CountRead); 
+  EZGPIB_screenwrite(' Answer: '); 
+  EZGPIB_screenwriteln(Answer);
+
+  repeat
+    EZGPIB_timeWaitformultipleof(DelayMeasurement);
+    Status:=EZGPIB_viWrite(VI,'T3',CountWritten); //Single trigger
+    Status:=EZGPIB_viRead(VI,Answer,CountRead);  //Get result
+    EZGPIB_screenwrite(' Answer: '); 
+    EZGPIB_screenwriteln(Answer);
+    T:=Answer;
+    writefiledata;   
+  until true=false;
+
+  Status:=EZGPIB_viClose(VI); 
+          
+end.

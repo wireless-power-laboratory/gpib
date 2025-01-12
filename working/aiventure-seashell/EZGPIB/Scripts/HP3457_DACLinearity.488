@@ -1,0 +1,25 @@
+Program DAC_Temp_Coeff;
+
+const HP3457=10;
+      filename='C:\EZGPIBData\DacLinearityData.Txt';
+
+var answer:string;
+    normal,hires:double;
+
+begin;
+  EZGPIB_FileDelete(Filename);
+  EZGPIB_ScreenClear;
+  repeat
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    normal:=EZGPIB_ConvertToFloatNumber(Answer);
+    EZGPIB_buswritedata(HP3457,'RMATH HIRES');
+    EZGPIB_buswaitfordata(HP3457,answer,20.0);
+    hires:=EZGPIB_ConvertToFloatNumber(Answer); 
+    normal:=normal+hires; 
+    EZGPIB_ScreenWriteLn(normal);               
+    EZGPIB_FileClearBuffer;
+    EZGPIB_FileAddtoBuffer(DateTimetoModifiedJulianDate(EZGPIB_TimeNow)); 
+    EZGPIB_FileAddtoBuffer(normal);
+    EZGPIB_FileWrite(Filename);   
+  until EZGPIB_KbdKeypressed;
+end.

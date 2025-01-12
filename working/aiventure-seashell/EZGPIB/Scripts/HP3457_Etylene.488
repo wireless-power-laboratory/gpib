@@ -1,0 +1,29 @@
+Program HP3457AOnly;
+
+const HP3457=10;
+      filename='C:\EZGPIBData\Ethylene.Txt';
+
+var answer:string;
+    dummy:double;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename); 
+  EZGPIB_buswritedata(HP3457,'LFREQ?');
+  EZGPIB_buswaitfordata(HP3457,answer,20.0); 
+  EZGPIB_ScreenWriteln(Answer);         
+  repeat
+    EZGPIB_buswaitfordata(HP3457,answer,5.0);
+    answer:=EZGPIB_ConvertStripToNumber(answer);   
+    EZGPIB_FileClearBuffer;
+    dummy:=EZGPIB_TimeNow
+    EZGPIB_FileAddtoBuffer(dummy);
+    dummy:=EZGPIB_ConvertToFloatNumber(answer);
+    dummy:=(dummy-0.004)/(0.02-0.004)*100.0; 
+    EZGPIB_FileAddtoBuffer(dummy);
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(EZGPIB_TimeNow);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteln(dummy);           
+  until EZGPIB_KbdKeypressed;
+end.

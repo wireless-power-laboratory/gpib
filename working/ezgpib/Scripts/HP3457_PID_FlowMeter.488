@@ -1,0 +1,66 @@
+Program FlowMeter;
+
+const HP3457=10;
+      HP6632=9;
+      filename='C:\EZGPIBData\FlowMeter.Txt';
+      setpoint=10.0;
+
+var answer:string;
+    voltage:double;
+    temperature:double;
+    lasttemperature:double;
+    time:double;
+    P,I,D:double;
+    controller:double;
+    outvoltage:double;
+    power:double;
+
+procedure pid;
+var Err:double;
+begin;
+  Err:=Setpoint-Temperature;
+  P:=10.0*Err;
+  I:=I+P*0.05;
+  if I<0 then I:=0;
+  //D:=-0.2*(Temperature-LastTemperature);
+  LastTemperature:=Temperature;
+  Controller:=P+I+D;
+  if temperature>30.0 then
+  begin;
+    I:=0;
+    Controller:=0;
+  end;  
+  If Controller<0 then Controller:=0;
+  outvoltage:=sqrt(controller);
+  power:=outvoltage*outvoltage/100.0;
+  EZGPIB_BusWriteData(HP6632,'VOLT '+EZGPIB_ConvertToFixed(outvoltage,3));  
+end;
+
+begin;
+  EZGPIB_ScreenClear; 
+  EZGPIB_FileDelete(Filename); 
+  controller:=0;
+  I:=0;
+  D:=0;
+  repeat   
+    EZGPIB_buswaitfordata(HP3457,answer,5.0);
+    time:=EZGPIB_TimeNow;     
+    answer:=EZGPIB_ConvertStripToNumber(answer); 
+    voltage:=EZGPIB_ConvertToFloatNumber(answer);
+    temperature:=voltage/2.0E-3; 
+    PID; 
+    EZGPIB_FileClearBuffer;    
+    EZGPIB_FileAddtoBuffer(time); 
+    EZGPIB_FileAddtoBuffer(temperature);
+    EZGPIB_FileAddtoBuffer(outvoltage);
+    EZGPIB_FileAddtoBuffer(power);        
+    EZGPIB_FileWrite(Filename);
+    EZGPIB_ScreenWrite(time);         
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWrite(temperature); 
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWrite(outvoltage);  
+    EZGPIB_ScreenWrite(' '); 
+    EZGPIB_ScreenWriteln(power);                             
+  until EZGPIB_KbdKeypressed;
+end.
