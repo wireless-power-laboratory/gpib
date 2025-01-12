@@ -1,6 +1,6 @@
 # gpib
 
-GPIB control library for laboratory instruments.
+GPIB-USB control library for laboratory instruments. An interface for [ideal](https://github.com/cartheur/ideal) to control instrumentation.
 
 ## Background
 
