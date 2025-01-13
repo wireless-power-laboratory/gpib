@@ -2,7 +2,7 @@
 
 namespace PrologixUsb
 {
-    public class Gpib
+    public class GpibControl
     {
         SerialPort sp = new SerialPort();
         /// <summary>
